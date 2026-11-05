@@ -1,0 +1,8 @@
+{% extends "_impressao.html" %}{% block titulo %}Fechamento do período{% endblock %}
+{% block corpo %}<h2>Fechamento do período contábil</h2>
+<p>Período: <b>{{ (c.get('from')|data) or 'início dos registros' }} a {{ c.until|data }}</b><br>Fechado por {{ c.by }} em {{ c.at[:16].replace('T',' ') }}</p>
+<table><tr><td>Recebido</td><td class="n">{{ r.rec|dinheiro }}</td></tr><tr><td>Pago</td><td class="n">{{ r.desp|dinheiro }}</td></tr><tr><td><b>Saldo do período</b></td><td class="n"><b>{{ (r.rec - r.desp)|dinheiro }}</b></td></tr>
+<tr><td>Contas a receber em aberto (seguem para o período seguinte)</td><td class="n">{{ r.open_r|dinheiro }}</td></tr><tr><td>Contas a pagar em aberto (seguem para o período seguinte)</td><td class="n">{{ r.open_d|dinheiro }}</td></tr></table>
+<h3>Lançamentos pagos e recebidos no período ({{ r.n }})</h3>
+<table><tr><th>Pagamento</th><th>Descrição</th><th>Categoria</th><th class="n">Valor</th></tr>{% for f in r.pagos %}<tr><td>{{ f.paidDate|data }}</td><td>{{ f.desc }}</td><td>{{ f.category }}</td><td class="n">{{ '-' if f.type == 'despesa' }}{{ f.value|dinheiro }}</td></tr>{% endfor %}</table>
+{% endblock %}

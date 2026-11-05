@@ -1,0 +1,28 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input, status_tag %}{% block titulo %}Agenda{% endblock %}
+{% macro cartao(a) %}<div class="appt {{ a.type }} st-{{ a.status }}"><a href="{{ url_for('agenda.editar', id=a.id) }}"><b>{{ a.time }}</b> <span class="who">{{ a.paciente if a.type != 'bloqueio' else (a.notes or 'Bloqueio') }}</span>
+{% if a.type != 'bloqueio' %}<span class="muted small"> · {{ a.dentista }}{{ ' · ' ~ a.procedimento if a.procedimento }}</span>{% endif %}</a>
+{% if a.type != 'bloqueio' %}{{ status_tag(a.status, a.status_nome) }}{% endif %}</div>{% endmacro %}
+{% block conteudo %}
+<div class="page-head"><div><h1>Agenda</h1><p class="sub">{% if modo == 'semana' %}Semana de {{ semana[0].data|data }} a {{ semana[-1].data|data }}{% else %}{{ dia_semana|capitalize }}, {{ data|data }} · {{ total }} consulta(s){% endif %}</p></div>
+{% if nivel('agenda') >= 2 %}<a class="btn primary" href="{{ url_for('agenda.nova', data=data, dentista=dentista) }}">+ Nova consulta</a>{% endif %}</div>
+<form class="toolbar" method="get">
+  <input type="hidden" name="modo" value="{{ modo }}">
+  <a class="btn" href="?data={{ anterior }}&modo={{ modo }}&dentista={{ dentista }}">‹</a>
+  <input type="date" name="data" value="{{ data }}" onchange="this.form.submit()">
+  <a class="btn" href="?data={{ proximo }}&modo={{ modo }}&dentista={{ dentista }}">›</a>
+  <a class="btn" href="?data={{ hoje }}&modo={{ modo }}&dentista={{ dentista }}">Hoje</a>
+  <select name="dentista" onchange="this.form.submit()"><option value="">Todos os dentistas</option>{% for d in dentistas %}<option value="{{ d.id }}" {{ 'selected' if d.id == dentista }}>{{ d.name }}</option>{% endfor %}</select>
+  <span class="grow"></span>
+  <a class="btn {{ 'primary' if modo == 'dia' }}" href="?data={{ data }}&modo=dia&dentista={{ dentista }}">Dia</a>
+  <a class="btn {{ 'primary' if modo == 'semana' }}" href="?data={{ data }}&modo=semana&dentista={{ dentista }}">Semana</a>
+</form>
+{% if modo == 'semana' %}
+<div class="wk-py">{% for d in semana %}<div class="dia {{ 'hoje' if d.data == hoje }}"><h4><a href="?data={{ d.data }}&modo=dia&dentista={{ dentista }}">{{ d.nome }} {{ d.data[8:] }}/{{ d.data[5:7] }}</a>{% if nivel('agenda') >= 2 %}<a href="{{ url_for('agenda.nova', data=d.data, dentista=dentista) }}" title="Nova consulta">+</a>{% endif %}</h4>
+{% for a in d.consultas %}{{ cartao(a) }}{% else %}<div class="muted small">—</div>{% endfor %}</div>{% endfor %}</div>
+{% else %}
+<div class="card" style="padding:0">
+<div class="agenda">{% for s in slots %}<div class="slot-time">{{ s }}</div><div class="slot">{% for a in por_slot[s] %}{{ cartao(a) }}{% endfor %}{% if nivel('agenda') >= 2 %}<a class="add" href="{{ url_for('agenda.nova', data=data, hora=s, dentista=dentista) }}">+ marcar {{ s }}</a>{% endif %}</div>{% endfor %}</div>
+</div>
+{% if fora %}<div class="card"><h2>Fora do horário de atendimento</h2>{% for a in fora %}{{ cartao(a) }}{% endfor %}</div>{% endif %}
+{% endif %}
+{% endblock %}

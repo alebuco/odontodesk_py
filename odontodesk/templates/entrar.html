@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input %}{% block titulo %}Entrar{% endblock %}
+{% block conteudo %}
+<div class="card setup-card login-card">
+  <h1>Entrar</h1><p class="sub">{{ clinica.name or 'OdontoDesk' }}</p>
+  <form method="post" class="form">{{ csrf_input() }}
+    <label class="full">Usuário<input name="login" value="{{ login }}" autocomplete="username" autofocus required></label>
+    <label class="full">Senha<input type="password" name="senha" autocomplete="current-password" required></label>
+    {% if erro %}<div class="alert full">{{ erro }}</div>{% endif %}
+    <div class="actions full"><button class="btn primary">Entrar</button></div>
+  </form>
+  <p class="muted small">Esqueceu a senha? Peça ao administrador para redefinir (no app do computador, em Usuários e acessos).</p>
+</div>
+{% endblock %}

@@ -1,0 +1,5 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>{% block titulo %}{% endblock %}</title>
+<style>body{font-family:Arial,sans-serif;margin:30px;color:#111}table{border-collapse:collapse;width:100%;margin:10px 0}td,th{border-bottom:1px solid #ccc;padding:5px;text-align:left}.n{text-align:right}h2{margin:0 0 8px}.no-print{margin-bottom:16px}@media print{.no-print{display:none}}</style></head>
+<body><div class="no-print"><button onclick="window.print()">Imprimir</button></div>
+<p><b>{{ clinica.name }}</b>{% if clinica.cnpj %} · CNPJ/CPF {{ clinica.cnpj }}{% endif %}<br>{{ clinica.address }}{% if clinica.city %} — {{ clinica.city }}{% endif %}{% if clinica.phone %} · Tel. {{ clinica.phone }}{% endif %}</p>
+{% block corpo %}{% endblock %}</body></html>

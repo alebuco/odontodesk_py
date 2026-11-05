@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% block titulo %}Sobre{% endblock %}
+{% block conteudo %}
+<h1>Sobre</h1>
+<div class="card about">
+  <table>
+    <tr><th style="width:30%">Programa</th><td>OdontoDesk em Python (sistema web)</td></tr>
+    <tr><th>Versão</th><td><b>{{ versao }}</b> — {{ etapa }}</td></tr>
+    <tr><th>Clínica</th><td>{{ clinica.name }}</td></tr>
+    <tr><th>Usuário</th><td>{{ usuario.name }} ({{ usuario.login }})</td></tr>
+  </table>
+  <p class="muted small">Usa o mesmo banco de dados do OdontoDesk para computador (JavaScript): o que é gravado aqui aparece nos computadores em poucos segundos, e vice-versa.</p>
+</div>
+{% endblock %}

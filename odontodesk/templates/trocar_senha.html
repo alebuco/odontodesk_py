@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input %}{% block titulo %}Alterar senha{% endblock %}
+{% block conteudo %}
+<div class="card setup-card login-card">
+  <h1>{{ 'Crie uma senha nova' if forcado else 'Alterar senha' }}</h1>
+  {% if forcado %}<p class="sub">O administrador pediu que você troque a senha no primeiro acesso.</p>{% endif %}
+  <form method="post" class="form">{{ csrf_input() }}
+    {% if not forcado %}<label class="full">Senha atual<input type="password" name="atual" autocomplete="current-password" required></label>{% endif %}
+    <label>Nova senha<input type="password" name="nova" autocomplete="new-password" required></label>
+    <label>Repita a nova senha<input type="password" name="nova2" autocomplete="new-password" required></label>
+    <p class="muted small full">Pelo menos 8 caracteres, com letras e números.</p>
+    {% if erro %}<div class="alert full">{{ erro }}</div>{% endif %}
+    <div class="actions full">{% if not forcado %}<a class="btn" href="/">Cancelar</a>{% endif %}<button class="btn primary">Salvar senha</button></div>
+  </form>
+</div>
+{% endblock %}

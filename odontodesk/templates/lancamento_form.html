@@ -1,0 +1,29 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input, erro %}{% block titulo %}Lançamento{% endblock %}
+{% block conteudo %}
+<h1>{{ 'Novo lançamento' if novo else ('Lançamento' if so_leitura else 'Editar lançamento') }}</h1>
+{% if so_leitura %}<div class="alert fin-closed">🔒 Lançamento de período contábil fechado (até {{ lock|data }}): só consulta.{% if eh_admin() %} Para alterar, reabra o período em Financeiro → Períodos contábeis.{% endif %}</div>{% endif %}
+<div class="card">
+<form method="post" class="form" id="ff">{{ csrf_input() }}{% if f %}<input type="hidden" name="_v" value="{{ f._v }}">{% endif %}
+<fieldset {{ 'disabled' if so_leitura or nivel('financeiro') < 2 }} style="border:0;padding:0;margin:0;display:contents">
+  <label>Tipo<select name="type"><option value="receita" {{ 'selected' if v.type == 'receita' }}>Receita</option><option value="despesa" {{ 'selected' if v.type == 'despesa' }}>Despesa</option></select></label>
+  <label>Categoria<input name="category" list="fcats" value="{{ v.category }}"></label>
+  <datalist id="fcats">{% for c in cats %}<option value="{{ c }}">{% endfor %}</datalist>
+  <label class="full">Descrição<input name="desc" value="{{ v.desc }}" class="{{ 'invalid' if erros.desc }}">{{ erro(erros,'desc') }}</label>
+  <label>Valor (R$)<input name="value" value="{{ v.value }}" inputmode="decimal" placeholder="0,00" class="{{ 'invalid' if erros.value }}">{{ erro(erros,'value') }}</label>
+  <label>Vencimento<input type="date" name="due" value="{{ v.due }}" class="{{ 'invalid' if erros.due }}">{{ erro(erros,'due') }}</label>
+  <label>Paciente<select name="patientId"><option value="">—</option>{% for p in pacientes %}<option value="{{ p.id }}" {{ 'selected' if p.id == v.patientId }}>{{ p.name }}</option>{% endfor %}</select></label>
+  <label>Dentista (comissão)<select name="dentistId"><option value="">—</option>{% for d in dentistas %}<option value="{{ d.id }}" {{ 'selected' if d.id == v.dentistId }}>{{ d.name }}</option>{% endfor %}</select></label>
+  <label>Forma de pagamento<select name="method">{% for x in formas %}<option {{ 'selected' if x == v.method }}>{{ x }}</option>{% endfor %}</select></label>
+  {% if novo %}<label>Repetir (meses)<input type="number" name="repeat" min="1" max="60" value="{{ v.repeat or 1 }}"></label>{% else %}<span></span>{% endif %}
+  <label class="check"><input type="checkbox" name="paid" value="1" {{ 'checked' if v.paid }}> Já pago / recebido</label>
+  <label>Data do pagamento<input type="date" name="paidDate" value="{{ v.paidDate }}" class="{{ 'invalid' if erros.paidDate }}">{{ erro(erros,'paidDate') }}</label>
+</fieldset>
+<input type="hidden" name="voltar" value="{{ request.args.get('voltar', '') }}">
+</form>
+<div class="actions">
+  {% if f and not so_leitura and nivel('financeiro') >= 2 %}<form method="post" action="{{ url_for('financeiro.excluir', id=f.id) }}" onsubmit="return confirm('Excluir lançamento?')">{{ csrf_input() }}<button class="btn danger">Excluir</button></form><span style="flex:1"></span>{% endif %}
+  {% if f and f.paid and f.type == 'receita' %}<a class="btn" href="{{ url_for('financeiro.recibo', id=f.id) }}" target="_blank">Recibo</a>{% endif %}
+  <a class="btn" href="{{ url_for('financeiro.mes', mes=(v.due or hoje)[:7]) }}">{{ 'Voltar' if so_leitura else 'Cancelar' }}</a>
+  {% if not so_leitura and nivel('financeiro') >= 2 %}<button class="btn primary" form="ff">Salvar</button>{% endif %}
+</div></div>
+{% endblock %}

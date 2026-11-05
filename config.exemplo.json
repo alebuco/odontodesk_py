@@ -1,0 +1,16 @@
+{
+  "banco": {
+    "tipo": "mysql",
+    "host": "gateway01.sa-east-1.prod.aws.tidbcloud.com",
+    "porta": 4000,
+    "nome": "odontodesk",
+    "usuario": "xxxxxxxx.root",
+    "senha": "SENHA-DO-BANCO"
+  },
+  "chave_secreta": "troque-por-um-texto-longo-e-aleatorio",
+  "computador": "WEB-PYTHON",
+  "fuso": "America/Sao_Paulo",
+  "endereco": "127.0.0.1",
+  "porta": 8650,
+  "https": false
+}

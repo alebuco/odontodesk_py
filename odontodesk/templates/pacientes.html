@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% block titulo %}Pacientes{% endblock %}
+{% block conteudo %}
+<div class="page-head"><div><h1>Pacientes</h1><p class="sub">{{ total }} paciente(s){{ ' encontrados' if q }}</p></div>
+{% if nivel('pacientes') >= 2 %}<a class="btn primary" href="{{ url_for('pacientes.novo') }}">+ Novo paciente</a>{% endif %}</div>
+<form class="toolbar" method="get"><input name="q" value="{{ q }}" placeholder="Buscar por nome, CPF ou telefone" style="max-width:360px" autofocus><button class="btn">Buscar</button>{% if q %}<a class="btn" href="{{ url_for('pacientes.lista') }}">Limpar</a>{% endif %}</form>
+<div class="card" style="padding:4px 8px">
+{% if pacientes %}<table><thead><tr><th>Nome</th><th>Telefone</th><th>CPF</th><th>Nascimento</th><th>Convênio</th></tr></thead><tbody>
+{% for p in pacientes[:500] %}<tr class="click" onclick="location.href='{{ url_for('pacientes.ficha', id=p.id) }}'">
+<td><a href="{{ url_for('pacientes.ficha', id=p.id) }}"><b>{{ nome_exibicao(p) }}</b></a>{% if p.socialName %}<br><span class="muted small">{{ p.name }}</span>{% endif %}</td>
+<td>{{ p.phone }}</td><td>{{ p.cpf }}</td><td>{{ p.birth|data }}</td><td>{{ p.insurance }}</td></tr>{% endfor %}
+</tbody></table>{% if pacientes|length > 500 %}<p class="muted small">Mostrando 500 de {{ pacientes|length }}. Use a busca.</p>{% endif %}
+{% else %}<div class="empty">Nenhum paciente{{ ' encontrado' if q }}.</div>{% endif %}
+</div>
+{% endblock %}

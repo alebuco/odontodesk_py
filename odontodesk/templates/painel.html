@@ -1,0 +1,29 @@
+{% extends "base.html" %}{% from "_macros.html" import status_tag %}{% block titulo %}Painel{% endblock %}
+{% block conteudo %}
+<h1>Olá, {{ usuario.name.split(' ')[0] }}!</h1><p class="sub">{{ hoje|data }} · {{ clinica.name }}</p>
+{% if fin %}
+<div class="grid g4">
+  <div class="card stat"><div class="label">Recebido no mês</div><div class="value" style="color:var(--ok)">{{ fin.rec|dinheiro }}</div></div>
+  <div class="card stat"><div class="label">Pago no mês</div><div class="value" style="color:var(--danger)">{{ fin.desp|dinheiro }}</div></div>
+  <div class="card stat"><div class="label">Saldo realizado</div><div class="value">{{ fin.saldo|dinheiro }}</div></div>
+  <div class="card stat"><div class="label">Contas vencidas</div><div class="value">{{ vencidos|length }}</div><div class="muted">{{ vencidos|sum(attribute='value')|dinheiro }}</div></div>
+</div>
+{% endif %}
+<div class="grid g2">
+  {% if consultas is defined %}
+  <div class="card"><div class="page-head"><h2 style="margin:0">Consultas de hoje ({{ consultas|length }})</h2><a class="btn sm" href="{{ url_for('agenda.ver') }}">Abrir agenda</a></div>
+    {% if consultas %}<ul class="list-plain">{% for a in consultas %}<li><span><b>{{ a.time }}</b> · {{ a.paciente }} <span class="muted">— {{ a.dentista }}</span></span>{{ status_tag(a.status, a.status|capitalize) }}</li>{% endfor %}</ul>
+    {% else %}<div class="empty">Nenhuma consulta hoje.</div>{% endif %}</div>
+  {% endif %}
+  {% if aniversarios is defined %}
+  <div class="card"><h2>Aniversariantes de hoje</h2>
+    {% if aniversarios %}<ul class="list-plain">{% for p in aniversarios %}<li><a href="{{ url_for('pacientes.ficha', id=p.id) }}">{{ nome_exibicao(p) }}</a><span class="muted">{{ p.phone }}</span></li>{% endfor %}</ul>
+    {% else %}<div class="empty">Nenhum aniversariante hoje.</div>{% endif %}</div>
+  {% endif %}
+</div>
+{% if vencidos %}
+<div class="card"><h2>Contas vencidas</h2><table><thead><tr><th>Vencimento</th><th>Descrição</th><th class="num">Valor</th></tr></thead><tbody>
+{% for f in vencidos[:15] %}<tr><td>{{ f.due|data }}</td><td><a href="{{ url_for('financeiro.editar', id=f.id) }}">{{ f.desc }}</a></td><td class="num" style="color:{{ 'var(--ok)' if f.type == 'receita' else 'var(--danger)' }}">{{ '- ' if f.type == 'despesa' }}{{ f.value|dinheiro }}</td></tr>{% endfor %}
+</tbody></table>{% if vencidos|length > 15 %}<p class="muted small">e mais {{ vencidos|length - 15 }}. <a href="{{ url_for('financeiro.mes', filtro='vencidos') }}">Ver todas</a></p>{% endif %}</div>
+{% endif %}
+{% endblock %}

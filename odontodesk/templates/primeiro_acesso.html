@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input %}{% block titulo %}Primeiro acesso{% endblock %}
+{% block conteudo %}
+<div class="card setup-card login-card">
+  <h1>Bem-vindo ao OdontoDesk</h1>
+  <p class="sub">{{ 'O banco não tem usuários. Cadastre o administrador.' if tem_clinica else 'Banco de dados vazio. Cadastre a clínica e o administrador.' }}</p>
+  <form method="post" class="form">{{ csrf_input() }}
+    {% if not tem_clinica %}<label class="full">Nome da clínica<input name="clinica" value="{{ v.clinica }}"></label>{% endif %}
+    <label class="full">Nome do administrador<input name="nome" value="{{ v.nome }}" required></label>
+    <label class="full">Usuário (para entrar)<input name="login" value="{{ v.login }}" required></label>
+    <label>Senha<input type="password" name="senha" autocomplete="new-password" required></label>
+    <label>Repita a senha<input type="password" name="senha2" autocomplete="new-password" required></label>
+    {% if erro %}<div class="alert full">{{ erro }}</div>{% endif %}
+    <div class="actions full"><button class="btn primary">Começar</button></div>
+  </form>
+</div>
+{% endblock %}

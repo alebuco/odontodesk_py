@@ -1,0 +1,26 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input %}{% block titulo %}Períodos contábeis{% endblock %}
+{% block conteudo %}
+<h1>Períodos contábeis</h1>
+<p class="muted small">Fechar o período trava os lançamentos <b>pagos ou recebidos</b> até a data escolhida. Eles continuam no histórico e nos relatórios, mas ninguém consegue alterá-los, excluí-los ou lançar pagamentos com data dentro do período (aqui e nos computadores). As contas <b>em aberto</b> continuam aparecendo e podem ser baixadas no período novo. Só o administrador fecha ou reabre períodos.</p>
+<div class="card"><h2>Fechar período</h2>
+  {% if lock %}<p class="small">Último fechamento: até <b>{{ lock|data }}</b>. O próximo começa em {{ de|data }}.</p>{% else %}<p class="small">Nenhum período fechado ainda: o primeiro fechamento inclui todos os lançamentos até a data.</p>{% endif %}
+  <form method="get" class="toolbar"><label>Fechar até <input type="date" name="ate" value="{{ ate }}" max="{{ hoje }}" onchange="this.form.submit()"></label><noscript><button class="btn">Ver resumo</button></noscript></form>
+  {% if erro %}<div class="alert">{{ erro }}</div>{% else %}
+  <table>
+    <tr><th style="width:55%">Período</th><td>{{ (de|data) or 'início dos registros' }} a <b>{{ ate|data }}</b></td></tr>
+    <tr><th>Recebido</th><td>{{ resumo.rec|dinheiro }}</td></tr><tr><th>Pago</th><td>{{ resumo.desp|dinheiro }}</td></tr>
+    <tr><th>Saldo do período</th><td><b>{{ (resumo.rec - resumo.desp)|dinheiro }}</b></td></tr>
+    <tr><th>Lançamentos que ficam travados</th><td>{{ resumo.n }}</td></tr>
+    <tr><th>Contas em aberto que seguem para o período novo</th><td>{{ resumo.n_open }} (a receber {{ resumo.open_r|dinheiro }} · a pagar {{ resumo.open_d|dinheiro }})</td></tr>
+  </table>
+  <form method="post" class="actions" onsubmit="return confirm('Fechar o período contábil até {{ ate|data }}? {{ resumo.n }} lançamento(s) ficarão travados. Só o administrador poderá reabrir.')">{{ csrf_input() }}<input type="hidden" name="ate" value="{{ ate }}"><button class="btn primary">Fechar período</button></form>
+  {% endif %}
+</div>
+<h2>Fechamentos feitos</h2>
+{% if lista %}<div class="card" style="padding:4px 8px"><table><thead><tr><th>Período</th><th class="num">Recebido</th><th class="num">Pago</th><th class="num">Saldo</th><th>Fechado por</th><th></th></tr></thead><tbody>
+{% for c in lista %}<tr><td>{{ (c.get('from')|data) or 'início' }} a {{ c.until|data }}</td><td class="num">{{ c.rec|dinheiro }}</td><td class="num">{{ c.desp|dinheiro }}</td><td class="num"><b>{{ (c.rec - c.desp)|dinheiro }}</b></td>
+<td class="small">{{ c.by }}<br><span class="muted">{{ c.at[:16].replace('T', ' ') }}</span></td>
+<td class="right"><a class="btn sm" href="{{ url_for('financeiro.imprimir_periodo', id=c.id) }}" target="_blank">Imprimir</a>
+{% if loop.first %}<form method="post" action="{{ url_for('financeiro.reabrir', id=c.id) }}" style="display:inline" onsubmit="return confirm('Reabrir este período? Os lançamentos voltam a poder ser alterados. Fica registrado no histórico.')">{{ csrf_input() }}<button class="btn sm danger">Reabrir</button></form>{% endif %}</td></tr>{% endfor %}
+</tbody></table></div>{% else %}<p class="muted">Nenhum.</p>{% endif %}
+{% endblock %}

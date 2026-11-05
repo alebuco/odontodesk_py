@@ -1,0 +1,25 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input, erro, select %}{% block titulo %}{{ 'Novo paciente' if novo else 'Editar paciente' }}{% endblock %}
+{% block conteudo %}
+<h1>{{ 'Novo paciente' if novo else 'Editar dados do paciente' }}</h1>
+<div class="card">
+<form method="post" class="form" autocomplete="off">{{ csrf_input() }}{% if not novo %}<input type="hidden" name="_v" value="{{ p._v }}">{% endif %}
+  <label class="full">Nome completo (civil)<input name="name" value="{{ v.name }}" required class="{{ 'invalid' if erros.name }}">{{ erro(erros,'name') }}</label>
+  <label>Usa nome social?{{ select('usesSocial', [('n','Não'),('s','Sim')], v.usesSocial) }}</label>
+  <label>Nome social<input name="socialName" value="{{ v.socialName }}" class="{{ 'invalid' if erros.socialName }}">{{ erro(erros,'socialName') }}</label>
+  <label>CPF<input name="cpf" value="{{ v.cpf }}" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" class="{{ 'invalid' if erros.cpf }}">{{ erro(erros,'cpf') }}</label>
+  <label>Nascimento<input type="date" name="birth" value="{{ v.birth }}" class="{{ 'invalid' if erros.birth }}">{{ erro(erros,'birth') }}</label>
+  <label>Telefone / WhatsApp<input name="phone" value="{{ v.phone }}" inputmode="tel" maxlength="15" placeholder="(DD) 9NNNN-NNNN" class="{{ 'invalid' if erros.phone }}">{{ erro(erros,'phone') }}</label>
+  <label>E-mail<input type="email" name="email" value="{{ v.email }}"></label>
+  <label>Convênio<input name="insurance" value="{{ v.insurance }}"></label>
+  <label>Responsável (menores)<input name="guardian" value="{{ v.guardian }}"></label>
+  <label>CEP<input name="cep" value="{{ v.cep }}" inputmode="numeric" maxlength="9" placeholder="00000-000" class="{{ 'invalid' if erros.cep }}">{{ erro(erros,'cep') }}</label>
+  <label>Logradouro<input name="street" value="{{ v.street }}"></label>
+  <label>Número<input name="number" value="{{ v.number }}"></label>
+  <label>Complemento<input name="complement" value="{{ v.complement }}"></label>
+  <label>Bairro<input name="district" value="{{ v.district }}"></label>
+  <label>Cidade<input name="city" value="{{ v.city }}"></label>
+  <label>UF<select name="uf"><option value="">—</option>{% for u in ufs %}<option {{ 'selected' if u == v.uf }}>{{ u }}</option>{% endfor %}</select></label>
+  <label class="full">Observações<textarea name="notes">{{ v.notes }}</textarea></label>
+  <div class="actions full"><a class="btn" href="{{ url_for('pacientes.lista') if novo else url_for('pacientes.ficha', id=p.id) }}">Cancelar</a><button class="btn primary">Salvar</button></div>
+</form></div>
+{% endblock %}

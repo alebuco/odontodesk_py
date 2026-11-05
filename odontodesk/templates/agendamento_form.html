@@ -1,0 +1,32 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input, erro %}{% block titulo %}{{ 'Nova consulta' if novo else 'Consulta' }}{% endblock %}
+{% block conteudo %}
+<h1>{{ 'Nova consulta' if novo else 'Consulta' }}</h1>
+{% if erros._choque %}<div class="flash aviso">Este dentista já tem horário marcado nesse período:
+<ul>{% for c in erros._choque %}<li>{{ c.time }} · {{ c.paciente or c.notes }} ({{ c.duration }} min)</li>{% endfor %}</ul>Confira o horário ou marque "Agendar mesmo assim".</div>{% endif %}
+<div class="card">
+<form method="post" class="form" id="fa">{{ csrf_input() }}{% if a %}<input type="hidden" name="_v" value="{{ a._v }}">{% endif %}
+<fieldset {{ 'disabled' if nivel('agenda') < 2 }} style="border:0;padding:0;margin:0;display:contents">
+  <label>Data<input type="date" name="date" value="{{ v.date }}" required class="{{ 'invalid' if erros.date }}">{{ erro(erros,'date') }}</label>
+  <label>Horário<input type="time" name="time" value="{{ v.time }}" required class="{{ 'invalid' if erros.time }}">{{ erro(erros,'time') }}</label>
+  <label>Duração (min)<input type="number" name="duration" min="5" step="5" value="{{ v.duration }}"></label>
+  <label>Tipo<select name="type">{% for k, t in tipos %}<option value="{{ k }}" {{ 'selected' if k == v.type }}>{{ t }}</option>{% endfor %}</select></label>
+  <label class="full">Paciente<select name="patientId" class="{{ 'invalid' if erros.patientId }}"><option value="">Selecione…</option>{% for p in pacientes %}<option value="{{ p.id }}" {{ 'selected' if p.id == v.patientId }}>{{ p.name }}</option>{% endfor %}</select>{{ erro(erros,'patientId') }}</label>
+  <label>Dentista<select name="dentistId"><option value="">—</option>{% for d in dentistas %}<option value="{{ d.id }}" {{ 'selected' if d.id == v.dentistId }}>{{ d.name }}</option>{% endfor %}</select></label>
+  <label>Procedimento<select name="procId"><option value="">—</option>{% for p in procedimentos %}<option value="{{ p.id }}" {{ 'selected' if p.id == v.procId }}>{{ p.name }}</option>{% endfor %}</select></label>
+  <label>Situação<select name="status">{% for k, t in status %}<option value="{{ k }}" {{ 'selected' if k == v.status }}>{{ t }}</option>{% endfor %}</select></label>
+  <label class="full">Observações<textarea name="notes">{{ v.notes }}</textarea></label>
+  {% if erros._choque %}<label class="check full"><input type="checkbox" name="mesmo_assim" value="1"> Agendar mesmo assim</label>{% endif %}
+</fieldset>
+</form>
+<div class="actions">
+  {% if a and nivel('agenda') >= 2 %}<form method="post" action="{{ url_for('agenda.excluir', id=a.id) }}" onsubmit="return confirm('Excluir este agendamento?')">{{ csrf_input() }}<button class="btn danger">Excluir</button></form>
+  {% if a.patientId %}<a class="btn" href="{{ url_for('pacientes.ficha', id=a.patientId) }}">Abrir paciente</a>{% endif %}<span style="flex:1"></span>{% endif %}
+  <a class="btn" href="{{ url_for('agenda.ver', data=v.date) }}">Cancelar</a>
+  {% if nivel('agenda') >= 2 %}<button class="btn primary" form="fa">Salvar</button>{% endif %}
+</div>
+{% if a and a.type != 'bloqueio' and nivel('agenda') >= 2 %}
+<div class="toolbar" style="margin-top:10px"><span class="muted small">Mudar a situação:</span>
+{% for k, t in status %}{% if k != a.status %}<form method="post" action="{{ url_for('agenda.situacao', id=a.id) }}">{{ csrf_input() }}<input type="hidden" name="status" value="{{ k }}"><button class="btn sm">{{ t }}</button></form>{% endif %}{% endfor %}</div>
+{% endif %}
+</div>
+{% endblock %}

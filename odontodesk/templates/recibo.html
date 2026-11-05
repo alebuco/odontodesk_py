@@ -1,0 +1,5 @@
+{% extends "_impressao.html" %}{% block titulo %}Recibo{% endblock %}
+{% block corpo %}<h2 style="text-align:center">RECIBO</h2><p style="text-align:right;font-size:18px"><b>{{ f.value|dinheiro }}</b></p>
+<p>Recebemos de <b>{{ (p.socialName ~ ' (nome civil: ' ~ p.name ~ ')') if p.socialName else (p.name or '______________________') }}</b>{% if p.cpf %}, CPF {{ p.cpf }}{% endif %}, a importância de <b>{{ f.value|dinheiro }}</b>, referente a {{ f.desc }}, paga via {{ f.method or '—' }} em {{ f.paidDate|data }}.</p>
+<p>Para clareza, firmamos o presente.</p><p>{{ clinica.city }}{{ ', ' if clinica.city }}{{ hoje|data }}.</p>
+<p style="margin-top:60px">______________________________<br>{{ d.name or clinica.name }}{% if d.cro %}<br>{{ d.cro }}{% endif %}</p>{% endblock %}

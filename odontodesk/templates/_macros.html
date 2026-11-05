@@ -1,0 +1,4 @@
+{% macro csrf_input() %}<input type="hidden" name="_csrf" value="{{ csrf() }}">{% endmacro %}
+{% macro erro(erros, campo) %}{% if erros and erros.get(campo) %}<span class="err">{{ erros[campo] }}</span>{% endif %}{% endmacro %}
+{% macro select(nome, opcoes, atual, vazio=None) %}<select name="{{ nome }}">{% if vazio is not none %}<option value="">{{ vazio }}</option>{% endif %}{% for v, t in opcoes %}<option value="{{ v }}" {{ 'selected' if (v|string) == (atual|string) }}>{{ t }}</option>{% endfor %}</select>{% endmacro %}
+{% macro status_tag(s, nome) %}<span class="tag {{ {'confirmado':'info','atendido':'ok','faltou':'bad','cancelado':'bad'}.get(s, '') }}">{{ nome or s }}</span>{% endmacro %}

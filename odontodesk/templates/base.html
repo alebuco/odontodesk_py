@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}OdontoDesk{% endblock %} · OdontoDesk</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='estilo.css') }}">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><path fill="currentColor" d="M9 4c-4 0-6 3-6 7 0 5 2 7 3 12 .6 3 1.4 5 3 5s2-3 2.6-6c.4-2 1.2-3 2.4-3s2 1 2.4 3c.6 3 1 6 2.6 6s2.4-2 3-5c1-5 3-7 3-12 0-4-2-7-6-7-2.4 0-3.6 1-5 1s-2.6-1-5-1z"/></svg>
+      <span>OdontoDesk</span>
+    </div>
+    {% if usuario %}
+    {% set atual = request.endpoint or '' %}
+    <nav id="nav">
+      {% if nivel('painel') %}<a href="{{ url_for('painel.inicio') }}" class="{{ 'active' if atual == 'painel.inicio' }}">Painel</a>{% endif %}
+      {% if nivel('agenda') %}<a href="{{ url_for('agenda.ver') }}" class="{{ 'active' if atual.startswith('agenda.') }}">Agenda</a>{% endif %}
+      {% if nivel('pacientes') %}<a href="{{ url_for('pacientes.lista') }}" class="{{ 'active' if atual.startswith('pacientes.') }}">Pacientes</a>{% endif %}
+      {% if nivel('financeiro') %}<a href="{{ url_for('financeiro.mes') }}" class="{{ 'active' if atual.startswith('financeiro.') }}">Financeiro</a>{% endif %}
+      <a href="{{ url_for('painel.sobre') }}" class="{{ 'active' if atual == 'painel.sobre' }}">Sobre</a>
+    </nav>
+    <div class="sidebar-foot">
+      <div><b style="color:#fff;font-size:13px">{{ usuario.name }}</b><br>{{ 'Administrador' if usuario.profileId == 'admin' else (usuario.profileId|capitalize) }}</div>
+      <a class="btn sm" href="{{ url_for('auth.trocar_senha') }}">Alterar senha</a>
+      <form method="post" action="{{ url_for('auth.sair') }}"><input type="hidden" name="_csrf" value="{{ csrf() }}"><button class="btn sm">Sair</button></form>
+      <div style="margin-top:8px">{{ clinica.name }}</div>
+      <div class="muted small">OdontoDesk (Python) {{ versao }}</div>
+    </div>
+    {% endif %}
+  </aside>
+  <main>
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+      {% for cat, m in msgs %}<div class="flash {{ cat if cat != 'message' }}">{{ m }}</div>{% endfor %}
+    {% endwith %}
+    {% block conteudo %}{% endblock %}
+  </main>
+</body>
+</html>
