@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block titulo %}Link da pré-consulta{% endblock %}
+{% block conteudo %}
+<div class="card" style="max-width:760px"><h2>Link da pré-consulta — {{ nome_exibicao(p) }}</h2>
+<p class="muted small">Copie e envie ao paciente pelo meio que preferir.</p>
+<label class="full">Link<textarea readonly rows="3" onclick="this.select()">{{ link }}</textarea></label>
+<label class="full">Mensagem completa<textarea readonly rows="5" onclick="this.select()">{{ texto }}</textarea></label>
+<div class="actions"><button class="btn" onclick="navigator.clipboard && navigator.clipboard.writeText({{ link|tojson }}); this.textContent='Copiado ✓'">Copiar link</button><a class="btn primary" href="{{ url_for('pacientes.ficha', id=p.id) }}">Pronto</a></div></div>
+{% endblock %}

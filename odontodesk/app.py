@@ -14,8 +14,8 @@ from . import tempo, web
 from .dados.drivers import criar_driver
 from .dados.store import Store
 
-VERSAO = "0.3.0"
-ETAPA = "Etapas 1 a 3: atendimento, prontuário, financeiro, procedimentos, próteses, estoque, modelos, configurações e usuários"
+VERSAO = "0.4.0"
+ETAPA = "Etapas 1 a 4a: atendimento, prontuário, financeiro, procedimentos, próteses, estoque, modelos, configurações, usuários, galeria com 3D, documentos, receitas, pré-consulta e limpeza de dados de exemplo"
 
 
 def carregar_config(caminho=None):
@@ -33,18 +33,22 @@ def create_app(config=None, store=None):
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Lax",
         SESSION_COOKIE_SECURE=bool(cfg.get("https")),
-        MAX_CONTENT_LENGTH=20 * 1024 * 1024,
+        MAX_CONTENT_LENGTH=200 * 1024 * 1024,
         TESTING=bool(cfg.get("testes")),
     )
     if store is None:
         store = Store(criar_driver(cfg.get("banco") or {}), cfg.get("computador") or "WEB-PYTHON")
         store.criar_tabelas()
     app.config["STORE"] = store
+    from .dados.anexos import Anexos
+    app.config["ANEXOS"] = Anexos(store)
     app.config["VERSAO"] = VERSAO
     web.registrar_filtros(app)
 
-    from .rotas import agenda, auth, cadastros, estoque, financeiro, pacientes, painel, prontuario, proteses, usuarios
-    for bp in (auth.bp, painel.bp, pacientes.bp, agenda.bp, financeiro.bp, prontuario.bp, cadastros.bp, proteses.bp, estoque.bp, usuarios.bp):
+    from .rotas import (agenda, auth, cadastros, documentos, estoque, financeiro, galeria, limpar, pacientes, painel, preconsulta,
+                        prontuario, proteses, usuarios)
+    for bp in (auth.bp, painel.bp, pacientes.bp, agenda.bp, financeiro.bp, prontuario.bp, cadastros.bp, proteses.bp, estoque.bp, usuarios.bp,
+               galeria.bp, documentos.bp, preconsulta.bp, limpar.bp):
         app.register_blueprint(bp)
 
     @app.before_request

@@ -1,0 +1,23 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input %}{% block titulo %}Documentos · {{ nome_exibicao(p) }}{% endblock %}
+{% block conteudo %}{% include "_abas_paciente.html" %}
+{% set ed = nivel('prontuario') >= 2 %}
+<div class="card"><div class="page-head"><h2 style="margin:0">Receitas</h2>{% if ed %}<a class="btn primary" href="{{ url_for('documentos.receita_nova', pid=p.id) }}">+ Nova receita</a>{% endif %}</div>
+{% if receitas %}<ul class="list-plain">{% for r in receitas %}<li><span><b>{{ r.date|data }}</b> — {{ r['items']|map(attribute='g')|join(', ') }}
+<span class="muted small">· {{ (r.snap or {}).get('dentist', {}).get('name', '') }}{% if r.kinds %} · {{ r.kinds.replace('controle', 'controle especial').replace(',', ', ') }}{% endif %}</span></span>
+<span class="row">{% if r.signed and r.signed.file %}<a class="btn sm" href="{{ url_for('documentos.assinado', pid=p.id, arquivo=r.signed.file) }}" target="_blank" title="Assinada por {{ r.signed.name }}">PDF assinado ✓</a>{% endif %}
+<a class="btn sm" href="{{ url_for('documentos.receita_imprimir', rid=r.id) }}" target="_blank">Reimprimir</a>{% if ed %}<a class="btn sm" href="{{ url_for('documentos.receita_nova', pid=p.id, repetir=r.id) }}">Repetir</a>{% endif %}</span></li>{% endfor %}</ul>
+{% else %}<div class="empty">Nenhuma receita.</div>{% endif %}
+<p class="muted small">A assinatura digital (certificado A1 ICP-Brasil) é feita no app do computador nesta versão; os PDFs assinados aparecem aqui.</p></div>
+{% if ed %}<div class="card"><h2>Gerar documento</h2>
+<form method="get" action="{{ url_for('documentos.documento_novo', pid=p.id) }}" class="toolbar">
+  <select name="modelo">{% for t in modelos %}<option value="{{ t.id }}">{{ t.title }}</option>{% else %}<option value="">Cadastre um modelo em Modelos de documentos</option>{% endfor %}</select>
+  <select name="dentista">{% for d in dentistas %}<option value="{{ d.id }}" {{ 'selected' if d.id == dentista_padrao }}>{{ d.name }}</option>{% endfor %}</select>
+  <button class="btn primary" {{ 'disabled' if not modelos }}>Gerar e editar</button></form></div>{% endif %}
+<div class="card"><h2>Documentos gerados</h2>
+{% if docs %}<ul class="list-plain">{% for d in docs %}<li><span><b>{{ d.title }}</b> <span class="muted">— {{ d.date|data }}</span></span><span class="row">
+{% if d.signed and d.signed.file %}<a class="btn sm" href="{{ url_for('documentos.assinado', pid=p.id, arquivo=d.signed.file) }}" target="_blank">PDF assinado ✓</a>{% endif %}
+<a class="btn sm" href="{{ url_for('documentos.documento_imprimir', pid=p.id, did=d.id) }}" target="_blank">Imprimir</a>
+{% if ed %}<form method="post" action="{{ url_for('documentos.documento_excluir', pid=p.id, did=d.id) }}" onsubmit="return confirm('{{ 'Excluir o documento e o PDF assinado guardado?' if d.signed else 'Excluir documento?' }}')">{{ csrf_input() }}<button class="btn sm danger">Excluir</button></form>{% endif %}</span></li>{% endfor %}</ul>
+{% else %}<div class="empty">Nenhum documento gerado.</div>{% endif %}</div>
+{% if request.args.get('imprimir') %}<script>window.open('{{ url_for("documentos.documento_imprimir", pid=p.id, did=request.args.get("imprimir")) }}', '_blank');</script>{% endif %}
+{% endblock %}

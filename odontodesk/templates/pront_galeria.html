@@ -1,0 +1,30 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input %}{% block titulo %}Galeria · {{ nome_exibicao(p) }}{% endblock %}
+{% block conteudo %}{% include "_abas_paciente.html" %}
+<form class="toolbar" method="get">
+  <select name="filtro" onchange="this.form.submit()" style="width:auto">{% for k, t in filtros %}{% if k != 'arq' or cont.arq %}<option value="{{ k }}" {{ 'selected' if k == f }}>{{ t }} ({{ cont[k] }})</option>{% endif %}{% endfor %}</select>
+  <span class="muted">Fotos, radiografias, PDFs e escaneamentos intraorais (.stl).</span><span class="grow"></span>
+  {% if n3d > 1 %}<a class="btn" href="{{ url_for('galeria.visualizador', pid=p.id, ids=(p.gallery|selectattr('kind', 'equalto', 'stl')|map(attribute='id')|join(','))) }}">Ver modelos 3D juntos</a>{% endif %}
+</form>
+{% if pendentes %}<div class="alert">{{ pendentes }} arquivo(s) do BlueDental ainda não foram baixados. O download é feito pelo app do computador (ou na próxima etapa desta versão).</div>{% endif %}
+{% if nivel('prontuario') >= 2 %}
+<form method="post" action="{{ url_for('galeria.enviar', pid=p.id) }}" enctype="multipart/form-data" class="card dropzone" id="dz">{{ csrf_input() }}
+  <div class="toolbar" style="margin:0"><input type="file" name="arquivos" id="fi" multiple accept="image/*,.stl,.pdf,.doc,.docx,.xls,.xlsx,.zip,.dcm" style="max-width:420px">
+  <button class="btn primary" id="up">Enviar</button><span class="muted small" id="dzmsg">Escolha os arquivos ou arraste para este quadro.</span></div>
+</form>{% endif %}
+<div class="card">{% if itens %}<div class="gallery">{% for g in itens %}<figure>
+  <a class="thumb" href="{{ url_for('galeria.ver', pid=p.id, gid=g.id) if not g.pending else '#' }}"><img src="{{ miniatura(g) }}" alt="{{ g.name }}" loading="lazy">{% if g.kind == 'stl' %}<span class="badge3d">3D</span>{% endif %}</a>
+  <figcaption><span title="{{ g.name }}">{{ g.name[:21] ~ ('…' if g.name|length > 22 else '') }}<br><span class="muted">{{ g.date|data }}{% if g.kind == 'stl' and g.size %} · {{ (g.size / 1048576)|round(1) }} MB{% endif %}</span></span>
+  {% if nivel('prontuario') >= 2 %}<form method="post" action="{{ url_for('galeria.excluir', pid=p.id, gid=g.id) }}" onsubmit="return confirm('Remover {{ g.name|replace("'", "") }} da galeria?')">{{ csrf_input() }}<button class="btn sm danger" title="Remover">×</button></form>{% endif %}</figcaption></figure>{% endfor %}</div>
+{% else %}<div class="empty">Nenhum arquivo{{ ' neste filtro' if f != 'todos' }}.</div>{% endif %}</div>
+<script>
+(function () {
+  var dz = document.getElementById('dz'); if (!dz) return;
+  var fi = document.getElementById('fi'), msg = document.getElementById('dzmsg');
+  ['dragover', 'dragenter'].forEach(function (e) { dz.addEventListener(e, function (ev) { ev.preventDefault(); dz.classList.add('over'); }); });
+  dz.addEventListener('dragleave', function () { dz.classList.remove('over'); });
+  dz.addEventListener('drop', function (ev) { ev.preventDefault(); dz.classList.remove('over'); fi.files = ev.dataTransfer.files; dz.requestSubmit(); });
+  fi.addEventListener('change', function () { if (fi.files.length) dz.requestSubmit(); });
+  dz.addEventListener('submit', function () { msg.textContent = 'Enviando… (escaneamentos 3D grandes podem levar alguns minutos)'; document.getElementById('up').disabled = true; });
+})();
+</script>
+{% endblock %}

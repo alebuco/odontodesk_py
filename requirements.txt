@@ -2,3 +2,6 @@ Flask>=3.0
 PyMySQL>=1.1
 waitress>=3.0
 tzdata>=2024.1      # fusos horários (o Windows não traz)
+Brotli>=1.1
+Pillow>=10
+numpy>=1.24

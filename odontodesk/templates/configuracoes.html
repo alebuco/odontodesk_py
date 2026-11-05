@@ -50,5 +50,6 @@
 <p>{{ banco }}</p>
 <p class="muted small">O mesmo banco do OdontoDesk do computador: as alterações aparecem nos dois em poucos segundos.</p>
 {% if ed %}<div class="actions" style="justify-content:flex-start"><a class="btn" href="{{ url_for('cadastros.config_backup') }}">Exportar dados (.json)</a></div>
+{% if eh_admin() %}<p><a class="btn" href="{{ url_for('limpar.limpar_dados') }}">Limpar dados de exemplo e de teste…</a></p>{% endif %}
 <p class="muted small">Restaurar backup, conexão com outro banco, Agenda Google, certificados e importações continuam no app do computador.</p>{% endif %}</div>
 {% endblock %}

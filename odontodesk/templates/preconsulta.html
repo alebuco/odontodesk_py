@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input %}{% block titulo %}Pré-consulta · {{ nome_exibicao(p) }}{% endblock %}
+{% block conteudo %}
+<div class="card login-card" style="max-width:640px;margin-left:0"><h2>Formulário de pré-consulta</h2>
+<p><b>{{ nome_exibicao(p) }}</b>{% if a %} — consulta em <b>{{ a.date|data }} às {{ a.time }}</b>{% endif %}.</p>
+<p class="muted">O paciente preenche dados cadastrais, motivo da consulta e anamnese pelo celular, antes de chegar. As respostas voltam pelo WhatsApp (ou e-mail) da clínica com um código que é importado aqui.</p>
+{% if situacao == 'enviado' %}<div class="alert">Já enviado em {{ pc.sentAt|hora_local }}, aguardando resposta. Você pode reenviar.</div>
+{% elif situacao == 'respondido' %}<div class="flash">Respondido em {{ pc.receivedAt|hora_local }}. Enviar de novo gera um formulário novo.</div>{% endif %}
+{% if not clinica.formUrl %}<div class="alert">O endereço do formulário ainda não foi configurado. {% if nivel('config') >= 2 %}<a href="{{ url_for('cadastros.configuracoes') }}#prec">Configurar agora</a>{% else %}Peça ao administrador.{% endif %}</div>{% endif %}
+<form method="post" action="{{ url_for('preconsulta.enviar', pid=p.id) }}" class="row" style="flex-wrap:wrap;gap:8px">{{ csrf_input() }}{% if a %}<input type="hidden" name="consulta" value="{{ a.id }}">{% endif %}
+  <button class="btn primary" name="via" value="whatsapp" {{ 'disabled' if not clinica.formUrl or not p.phone }}>{{ 'Reenviar' if situacao == 'enviado' else 'Enviar' }} pelo WhatsApp</button>
+  <button class="btn" name="via" value="email" {{ 'disabled' if not clinica.formUrl or not p.email }}>Por e-mail</button>
+  <button class="btn" name="via" value="copy" {{ 'disabled' if not clinica.formUrl }}>Mostrar o link</button></form>
+{% if not p.phone %}<p class="muted small">Paciente sem telefone cadastrado.</p>{% endif %}
+<div class="actions"><a class="btn" href="{{ request.args.get('voltar') or url_for('pacientes.ficha', id=p.id) }}">{{ 'Agora não' if request.args.get('voltar') else 'Voltar' }}</a></div></div>
+{% endblock %}

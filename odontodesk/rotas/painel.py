@@ -24,6 +24,10 @@ def inicio():
     if web.nivel("pacientes") >= 1:
         md = hoje[5:]
         ctx["aniversarios"] = [p for p in st.listar("patients", "nascimento IS NOT NULL") if (p.get("birth") or "")[5:] == md]
+    if web.nivel("pacientes") >= 1:
+        from .preconsulta import proxima_consulta
+        pend = [p for p in st.listar("patients") if (p.get("preConsulta") or {}).get("status") == "enviado"]
+        ctx["pre_pendentes"] = [{"p": p, "a": proxima_consulta(p["id"])} for p in pend]
     if web.nivel("financeiro") >= 1:
         ctx["fin"] = resumo_mes(hoje[:7])
         venc = st.listar("finance", "pago = 0 AND vencimento < ?", (hoje,), ordem="vencimento")

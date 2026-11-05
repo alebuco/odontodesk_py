@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input %}{% block titulo %}{{ t.title }}{% endblock %}
+{% block conteudo %}{% include "_abas_paciente.html" %}
+<div class="card"><h2>{{ t.title }}</h2><p class="muted small">Revise e ajuste o texto antes de salvar. Ele fica guardado na ficha do paciente.</p>
+<form method="post" class="form">{{ csrf_input() }}<input type="hidden" name="_v" value="{{ p._v }}"><input type="hidden" name="dentistId" value="{{ dentista }}">
+  <label class="full">Título<input name="title" value="{{ t.title }}"></label>
+  <label class="full">Texto<textarea name="text" style="min-height:380px;font-family:Georgia,serif">{{ texto }}</textarea></label>
+  <div class="actions full"><a class="btn" href="{{ url_for('documentos.documentos', pid=p.id) }}">Cancelar</a><button class="btn primary">Salvar e imprimir</button></div>
+</form></div>
+{% endblock %}

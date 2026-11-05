@@ -1,0 +1,74 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input %}{% block titulo %}3D · {{ nome_exibicao(p) }}{% endblock %}
+{% block conteudo %}{% include "_abas_paciente.html" %}
+{% if not modelos %}<div class="card empty">Nenhum modelo 3D (.stl) na galeria deste paciente.</div>{% else %}
+<div class="card"><div class="v3d">
+  <aside class="v3d-side"><h4>Modelos do paciente</h4>
+    {% for m in modelos %}<div class="v3d-item"><label class="row"><input type="checkbox" data-vis="{{ m.id }}" {{ 'checked' if m.on }}><b title="{{ m.name }}">{{ m.name }}</b></label>
+      <div class="row"><input type="color" data-col="{{ m.id }}" title="Cor"><input type="range" data-op="{{ m.id }}" min="0.15" max="1" step="0.05" value="1" title="Transparência">
+      <a class="btn sm" href="{{ m.url }}">Baixar</a></div>
+      <div class="muted small">{{ '{:,}'.format(m.triangles).replace(',', '.') }} triângulos{% if m.dims %} · {{ m.dims|join(' × ')|replace('.', ',') }} mm{% endif %}</div></div>{% endfor %}
+    <h4>Medições</h4><div id="meas" class="muted small">Ative “Medir” e clique em dois pontos do modelo.</div>
+  </aside>
+  <section class="v3d-main">
+    <div class="toolbar">
+      <span class="seg">{% for k, l in [('frente','Frente'),('topo','Topo'),('base','Base'),('esquerda','Esq.'),('direita','Dir.'),('tras','Trás')] %}<button class="btn sm" data-vw="{{ k }}">{{ l }}</button>{% endfor %}</span>
+      <button class="btn sm" data-rot="x" title="Girar 90° no eixo horizontal">↻ 90°</button><button class="btn sm" data-rot="y" title="Girar 90° no eixo vertical">⟳ 90°</button>
+      <span class="grow"></span><button class="btn sm" id="measure">Medir</button><button class="btn sm" id="clrm">Limpar medidas</button>
+      {% if nivel('prontuario') >= 2 %}<button class="btn sm primary" id="snap">Salvar imagem na galeria</button>{% endif %}
+    </div>
+    <div class="v3d-canvas"><canvas id="cv"></canvas><div id="v3dmsg" class="v3d-msg">Carregando modelo…</div></div>
+    <div class="muted small">Arraste para girar · botão direito ou Shift + arrastar para mover · roda do mouse para aproximar</div>
+  </section></div></div>
+<script src="{{ url_for('static', filename='stl-viewer.js') }}"></script>
+<script>
+(function () {
+  var MODELOS = {{ modelos_json|safe }}, CSRF = '{{ csrf() }}', ED = {{ 'true' if nivel('prontuario') >= 2 else 'false' }};
+  var CORES = ['#e8dcc8', '#f0b3a6', '#9cc9e8', '#b9dfa9', '#d4c1ef', '#f2d48f'];
+  var $ = function (s) { return document.querySelector(s); }, msg = $('#v3dmsg'), viewer, cache = {};
+  MODELOS.forEach(function (m, i) { m.color = m.color || CORES[i % CORES.length]; var c = document.querySelector('[data-col="' + m.id + '"]'); if (c) c.value = m.color; });
+  try { viewer = STLViewer.create($('#cv')); } catch (e) { msg.textContent = e.message; return; }
+  function post(url, dados) { var f = new FormData(); f.append('_csrf', CSRF); for (var k in dados) f.append(k, dados[k]); return fetch(url, { method: 'POST', body: f, credentials: 'same-origin' }); }
+  viewer.onMeasure = function (list, pending) {
+    $('#meas').innerHTML = list.length || pending ? '<ol class="meas">' + list.map(function (d) { return '<li><b>' + d.toFixed(2).replace('.', ',') + ' mm</b></li>'; }).join('') + (pending ? '<li class="muted">clique no segundo ponto…</li>' : '') + '</ol>' : 'Ative “Medir” e clique em dois pontos do modelo.';
+  };
+  function carregar(m) {
+    if (cache[m.id]) return Promise.resolve(cache[m.id]);
+    msg.textContent = 'Carregando ' + m.name + '…'; msg.classList.remove('hidden');
+    return fetch(m.url, { credentials: 'same-origin' }).then(function (r) { if (!r.ok) throw new Error('arquivo não encontrado'); return r.arrayBuffer(); })
+      .then(function (buf) {
+        var mesh = STLViewer.parse(buf); cache[m.id] = mesh;
+        if (m.semMiniatura && ED) { try { post('{{ url_for("galeria.miniatura_3d", pid=p.id) }}', { id: m.id, thumb: STLViewer.thumbnail(mesh) }); m.semMiniatura = false; } catch (e) {} }
+        return mesh;
+      });
+  }
+  function mostrar(m, ajustar) {
+    return carregar(m).then(function (mesh) {
+      if (!viewer.has(m.id)) viewer.add(m.id, mesh, { color: m.color, alpha: Number(document.querySelector('[data-op="' + m.id + '"]').value) });
+      else viewer.set(m.id, { visible: true });
+      if (ajustar) viewer.view('frente');
+      msg.classList.add('hidden');
+    }).catch(function (e) { msg.textContent = 'Não foi possível abrir ' + m.name + ': ' + e.message; msg.classList.remove('hidden'); });
+  }
+  var sel = MODELOS.filter(function (m) { return m.on; });
+  sel.reduce(function (p, m, i) { return p.then(function () { return mostrar(m, i === sel.length - 1); }); }, Promise.resolve());
+  if (!sel.length) msg.textContent = 'Marque um modelo à esquerda.';
+  document.querySelectorAll('[data-vis]').forEach(function (c) { c.onchange = function () {
+    var m = MODELOS.find(function (x) { return x.id === c.dataset.vis; });
+    if (c.checked) mostrar(m, document.querySelectorAll('[data-vis]:checked').length === 1); else viewer.set(m.id, { visible: false });
+  }; });
+  document.querySelectorAll('[data-col]').forEach(function (c) { c.oninput = function () { viewer.set(c.dataset.col, { color: c.value }); }; });
+  document.querySelectorAll('[data-op]').forEach(function (r) { r.oninput = function () { viewer.set(r.dataset.op, { alpha: Number(r.value) }); }; });
+  document.querySelectorAll('[data-vw]').forEach(function (b) { b.onclick = function () { viewer.view(b.dataset.vw); }; });
+  document.querySelectorAll('[data-rot]').forEach(function (b) { b.onclick = function () { viewer.rotate(b.dataset.rot, 90); }; });
+  var medindo = false;
+  $('#measure').onclick = function (e) { medindo = !medindo; viewer.measureMode(medindo); e.target.classList.toggle('primary', medindo); };
+  $('#clrm').onclick = function () { viewer.clearMeasures(); };
+  var snap = $('#snap'); if (snap) snap.onclick = function () {
+    snap.disabled = true;
+    post('{{ url_for("galeria.captura", pid=p.id) }}', { imagem: viewer.snapshot() }).then(function (r) { return r.json(); })
+      .then(function (j) { snap.textContent = j.ok ? 'Imagem salva na galeria ✓' : 'Não foi possível salvar'; setTimeout(function () { snap.textContent = 'Salvar imagem na galeria'; snap.disabled = false; }, 2500); });
+  };
+})();
+</script>
+{% endif %}
+{% endblock %}

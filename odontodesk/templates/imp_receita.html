@@ -1,0 +1,63 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Receita — {{ S.patient.name }}</title><style>
+@page{size:A4 portrait;margin:12mm} @page land{size:A4 landscape;margin:8mm}
+body{font-family:Georgia,'Times New Roman',serif;color:#111;margin:0;font-size:12.5px;line-height:1.45}
+.page{page-break-after:always;break-after:page} .page:last-child{page-break-after:auto;break-after:auto}
+.landscape{page:land;display:flex;gap:0;height:186mm} .landscape .half{flex:1;padding:2mm 7mm;display:flex;flex-direction:column}
+.cut{border-left:1px dashed #999;margin:0 1mm}
+.portrait .one{min-height:265mm;display:flex;flex-direction:column}
+.hd{display:flex;gap:12px;align-items:center;border-bottom:2px solid #0e8f86;padding-bottom:7px;margin-bottom:10px}
+.hd .logo{max-height:62px;max-width:150px;object-fit:contain} .hdt b{font-size:16px} .hdt div{font-size:11px;color:#333}
+.logo.sm{float:right;max-height:34px;max-width:90px;object-fit:contain}
+h1{font-size:15px;letter-spacing:.08em;text-transform:uppercase;margin:4px 0 8px;text-align:center}
+.vrow{display:flex;align-items:center;justify-content:space-between;gap:8px} .vrow h1{text-align:left}
+.vlabel{font-size:11px;font-weight:bold;border:1px solid #333;padding:2px 6px;border-radius:4px;white-space:nowrap}
+.pac{margin:6px 0 10px} .its{flex:1}
+.uso{font-weight:bold;text-decoration:underline;margin:8px 0 4px}
+.it{margin:0 0 9px} .l1{display:flex;align-items:baseline;gap:6px} .nm{font-weight:bold} .dots{flex:1;border-bottom:1px dotted #555;transform:translateY(-3px)} .q{white-space:nowrap}
+.pos{margin:2px 0 0 18px}
+.note{font-size:10.5px;color:#333;margin-top:6px;border-top:1px solid #ddd;padding-top:4px}
+.sig{margin-top:14px;text-align:center} .sig .dt{text-align:right;margin-bottom:28px} .sig .line{border-top:1px solid #111;width:62%;margin:0 auto 3px}
+.rce{display:flex;flex-direction:column;height:100%;font-size:11.5px}
+.box{border:1px solid #222;border-radius:3px;padding:4px 7px;margin-bottom:6px} .bt{font-weight:bold;text-transform:uppercase;font-size:10.5px;margin-bottom:2px}
+.row2{display:flex;gap:6px;margin-top:6px} .row2 .box{flex:1;font-size:10.5px;line-height:1.7}
+.rce .sig{margin-top:6px} .rce .sig .dt{margin-bottom:22px}
+.no-print{padding:8px;background:#eef5f4;font-family:Arial,sans-serif}@media print{.no-print{display:none}}
+</style></head><body>
+<div class="no-print"><button onclick="window.print()">Imprimir</button> <span>Ajuste a orientação do papel se o navegador pedir (as receitas de 2 vias usam A4 deitada).</span></div>
+{% set c = S.clinic %}
+{% macro cab() %}<div class="hd">{% if clinica.logo %}<img class="logo" src="{{ clinica.logo }}" alt="">{% endif %}<div class="hdt"><b>{{ S.clinic.name }}</b>
+<div>{{ S.clinic.address }}{% if S.clinic.city %} — {{ S.clinic.city }}{% endif %}</div><div>{% if S.clinic.phone %}Tel. {{ S.clinic.phone }}{% endif %}{% if S.clinic.email %} · {{ S.clinic.email }}{% endif %}{% if S.clinic.cnpj %} · CNPJ/CPF {{ S.clinic.cnpj }}{% endif %}</div></div></div>{% endmacro %}
+{% macro itens(lista) %}{% for uso, grupo in R.grupos_uso(lista) %}<div class="uso">{{ R.USOS.get(uso, 'Uso') }}</div>{% for n, i in grupo %}
+<div class="it"><div class="l1"><span class="nm">{{ n }}. {{ R.item_nome(i) }}</span><span class="dots"></span><span class="q">{{ R.qtd_extenso(i.qtd) }}</span></div>
+<div class="pos">{{ i.pos }}{% if i.continuo %} <i>(uso prolongado)</i>{% endif %}</div></div>{% endfor %}{% endfor %}{% endmacro %}
+{% macro assina() %}<div class="sig"><div class="dt">{{ cidade }}{{ ', ' if cidade }}{{ data_extenso }}.</div><div class="line"></div><div><b>{{ S.dentist.name }}</b></div><div>{{ S.dentist.cro }}</div></div>{% endmacro %}
+{% macro duas_vias(kind, conteudo, d) %}{% set vias = ['1ª via — Farmácia', '2ª via — Paciente'] if kind == 'controle' else ['1ª via — Paciente', '2ª via — Retenção na farmácia'] %}
+{% if rx.layout == 'uma' %}{% for v in vias %}<section class="page portrait"><div class="via one">{{ conteudo(v, d) }}</div></section>{% endfor %}
+{% else %}<section class="page landscape"><div class="via half">{{ conteudo(vias[0], d) }}</div><div class="cut"></div><div class="via half">{{ conteudo(vias[1], d) }}</div></section>{% endif %}{% endmacro %}
+
+{% macro am(via, d) %}{% set cont = d['items']|selectattr('continuo')|selectattr('tipo', 'equalto', 'antimicrobiano')|list %}{{ cab() }}<div class="vrow"><h1>Receituário</h1><span class="vlabel">{{ via }}</span></div>
+<div class="pac"><b>Paciente:</b> {{ S.patient.name }} &nbsp; <b>Idade:</b> {{ rx.idade }} anos &nbsp; <b>Sexo:</b> {{ {'F': 'Feminino', 'M': 'Masculino'}.get(rx.sexo, '') }}</div>
+<div class="its">{{ itens(d['items']) }}</div>
+<div class="note">{{ 'Uso prolongado: receita válida por 90 dias; quantidade indicada para 30 dias de tratamento.' if cont else 'Receita de antimicrobiano válida por 10 dias a partir da data de emissão.' }} (RDC Anvisa nº 471/2021)</div>{{ assina() }}{% endmacro %}
+{% macro ce(via, d) %}<div class="rce"><div class="vrow"><h1>Receituário de Controle Especial</h1><span class="vlabel">{{ via }}</span></div>
+<div class="box"><div class="bt">Identificação do emitente</div>{% if clinica.logo %}<img class="logo sm" src="{{ clinica.logo }}" alt="">{% endif %}
+<div><b>Nome completo:</b> {{ S.dentist.name }}</div><div><b>Conselho / nº / UF:</b> {{ S.dentist.cro }}</div>
+<div><b>Estabelecimento:</b> {{ S.clinic.name }}{% if S.clinic.cnpj %} — CNPJ/CPF {{ S.clinic.cnpj }}{% endif %}</div>
+<div><b>Endereço completo:</b> {{ S.clinic.address }}</div><div><b>Cidade/UF:</b> {{ S.clinic.city }} &nbsp; <b>Telefone:</b> {{ S.clinic.phone }}</div></div>
+<div class="pac"><div><b>Paciente (nome completo):</b> {{ S.patient.name }}</div><div><b>CPF:</b> {{ rx.cpf or 'NÃO POSSUI' }}</div><div><b>Endereço completo:</b> {{ S.patient.address }}</div></div>
+<div class="its"><div class="uso">Prescrição</div>{{ itens(d['items']) }}</div>{{ assina() }}
+<div class="row2"><div class="box"><div class="bt">Identificação do comprador</div><div>Nome completo: ______________________________</div><div>CPF: ______________________________________</div><div>Endereço completo: __________________________</div><div>_________________________________________</div><div>Telefone: __________________________________</div></div>
+<div class="box"><div class="bt">Identificação do fornecedor</div><div style="height:46px"></div><div>______________________________</div><div>Assinatura do farmacêutico</div><div>Data: ____/____/______</div></div></div>
+<div class="note">Validade: 30 dias a partir da emissão. Modelo conforme Portaria SVS/MS nº 344/1998 e RDC Anvisa nº 1.000/2025.</div></div>{% endmacro %}
+
+{% for d in docs %}
+{% if d.kind == 'simples' %}
+<section class="page portrait"><div class="via one">{{ cab() }}<h1>Receituário</h1><div class="pac"><b>Paciente:</b> {{ S.patient.name }}</div><div class="its">{{ itens(d['items']) }}</div>{{ assina() }}</div></section>
+{% elif d.kind == 'antimicrobiano' %}
+{{ duas_vias('antimicrobiano', am, d) }}
+{% else %}
+{{ duas_vias('controle', ce, d) }}
+{% endif %}
+{% endfor %}
+<script>setTimeout(function () { window.print(); }, 400);</script>
+</body></html>

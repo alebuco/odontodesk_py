@@ -9,6 +9,8 @@
   <a href="{{ url_for('prontuario.tratamentos', pid=p.id) }}" class="{{ 'active' if aba == 'tratamentos' }}">Odontograma e Financeiro</a>
   {% endif %}
   {% if nivel('financeiro') %}<a href="{{ url_for('pacientes.ficha', id=p.id, aba='pagamentos') }}" class="{{ 'active' if aba == 'pagamentos' }}">Pagamentos</a>{% endif %}
+  {% if nivel('prontuario') %}<a href="{{ url_for('documentos.documentos', pid=p.id) }}" class="{{ 'active' if aba == 'documentos' }}">Documentos</a>
+  <a href="{{ url_for('galeria.galeria', pid=p.id) }}" class="{{ 'active' if aba == 'galeria' }}">Galeria de imagens</a>{% endif %}
   {% if nivel('agenda') %}<a href="{{ url_for('pacientes.ficha', id=p.id, aba='consultas') }}" class="{{ 'active' if aba == 'consultas' }}">Consultas</a>{% endif %}
   {% if nivel('prontuario') %}<a href="{{ url_for('prontuario.historico', pid=p.id) }}" class="{{ 'active' if aba == 'historico' }}">Histórico</a>{% endif %}
 </div>

@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input %}{% block titulo %}Limpar dados de exemplo{% endblock %}
+{% block conteudo %}
+<h1>Limpar dados de exemplo e de teste</h1>
+<p class="sub">Os dados de exemplo já vêm marcados. Marque também os pacientes e lançamentos que você criou só para testar. Os dados reais ficam como estão.</p>
+<div class="alert">Excluir um paciente exclui também os agendamentos, planos, lançamentos, evoluções, receitas, próteses e as imagens dele. Faça um <a href="{{ url_for('cadastros.config_backup') }}">backup</a> antes.</div>
+<form method="post">{{ csrf_input() }}
+<div class="card"><h2>Pacientes</h2>{% if plano.patients %}<table><thead><tr><th></th><th>Paciente</th><th>Telefone</th><th>Registros ligados</th></tr></thead><tbody>
+{% for p in plano.patients %}<tr><td style="width:30px"><input type="checkbox" name="paciente" value="{{ p.id }}" {{ 'checked' if p.sel }} style="width:auto"></td>
+<td>{{ p.name }} {% if p.example %}<span class="tag warn">exemplo</span>{% endif %}</td><td>{{ p.phone or '—' }}</td>
+<td class="muted small">{% for c, n in p.detail.items() %}{{ n }} {{ label[c] }}{{ '(s)' if n > 1 }}{{ ', ' if not loop.last }}{% else %}—{% endfor %}</td></tr>{% endfor %}
+</tbody></table>{% else %}<div class="empty">Nenhum paciente.</div>{% endif %}</div>
+<div class="card"><h2>Lançamentos sem paciente e outros dados de exemplo</h2>{% if plano.others %}<ul class="list-plain">
+{% for o in plano.others %}<li><label class="row" style="margin:0"><input type="checkbox" name="outro" value="{{ o.coll }}:{{ o.id }}" {{ 'checked' if o.sel }} style="width:auto"> {{ o.label }} {% if o.example %}<span class="tag warn">exemplo</span>{% endif %}</label></li>{% endfor %}
+</ul>{% else %}<div class="empty">Nada além dos pacientes.</div>{% endif %}</div>
+<div class="card"><label>Para confirmar, digite <b>EXCLUIR</b><input name="confirmar" autocomplete="off" style="max-width:220px"></label>
+<div class="actions"><a class="btn" href="{{ url_for('cadastros.configuracoes') }}">Cancelar</a><button class="btn danger">Excluir o que está marcado</button></div></div></form>
+{% endblock %}

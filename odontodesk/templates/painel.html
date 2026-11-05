@@ -21,6 +21,11 @@
     {% else %}<div class="empty">Nenhum aniversariante hoje.</div>{% endif %}</div>
   {% endif %}
 </div>
+{% if pre_pendentes is defined %}
+<div class="card"><div class="page-head"><h2 style="margin:0">Pré-consultas aguardando resposta</h2>{% if nivel('pacientes') >= 2 %}<a class="btn sm" href="{{ url_for('preconsulta.importar') }}">Importar resposta recebida</a>{% endif %}</div>
+{% if pre_pendentes %}<ul class="list-plain">{% for x in pre_pendentes %}<li><span><a href="{{ url_for('preconsulta.oferecer', pid=x.p.id) }}"><b>{{ nome_exibicao(x.p) }}</b></a> <span class="muted">— enviado em {{ x.p.preConsulta.sentAt|hora_local }}{% if x.a %} · consulta {{ x.a.date|data }} {{ x.a.time }}{% endif %}</span></span></li>{% endfor %}</ul>
+{% else %}<div class="empty">Nenhuma pré-consulta pendente.</div>{% endif %}</div>
+{% endif %}
 {% if vencidos %}
 <div class="card"><h2>Contas vencidas</h2><table><thead><tr><th>Vencimento</th><th>Descrição</th><th class="num">Valor</th></tr></thead><tbody>
 {% for f in vencidos[:15] %}<tr><td>{{ f.due|data }}</td><td><a href="{{ url_for('financeiro.editar', id=f.id) }}">{{ f.desc }}</a></td><td class="num" style="color:{{ 'var(--ok)' if f.type == 'receita' else 'var(--danger)' }}">{{ '- ' if f.type == 'despesa' }}{{ f.value|dinheiro }}</td></tr>{% endfor %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input %}{% block titulo %}Pré-consulta de {{ nome_exibicao(p) }}{% endblock %}
+{% block conteudo %}
+<h1>Pré-consulta de {{ nome_exibicao(p) }}</h1>
+{% if ja %}<div class="alert">Esta resposta já foi importada antes. Importar de novo vai sobrescrever a anamnese com estes dados.</div>{% endif %}
+<p class="muted">Respondido em {{ respondido }}. Marque o que deve ser aplicado ao cadastro.</p>
+<form method="post" action="{{ url_for('preconsulta.aplicar') }}">{{ csrf_input() }}<input type="hidden" name="mensagem" value="{{ texto }}">
+<div class="card"><h2>Dados cadastrais</h2><table><thead><tr><th></th><th>Campo</th><th>No cadastro</th><th>Informado pelo paciente</th></tr></thead><tbody>
+{% for c in campos %}<tr><td style="width:30px"><input type="checkbox" name="campo" value="{{ c.k }}" {{ 'checked' if c.diferente else 'disabled' }} style="width:auto"></td><td>{{ c.rotulo }}</td>
+<td class="muted">{{ (c.atual|data if c.k == 'birth' else c.atual) or '—' }}</td><td>{% if c.diferente %}<b>{{ c.novo|data if c.k == 'birth' else c.novo }}</b>{% else %}<span class="muted">igual</span>{% endif %}</td></tr>{% endfor %}
+</tbody></table></div>
+<div class="card"><h2>Motivo da consulta</h2><p>{{ r.qx or 'Não informado' }}</p></div>
+<div class="card"><h2>Anamnese</h2><table><tbody>{% for x in respostas %}<tr><td>{{ x.q.q }}</td><td style="width:45%">{% if x.q.type == 'yesno' %}{% if x.a == 'sim' %}<span class="tag bad">Sim</span>{% elif x.a == 'nao' %}<span class="tag">Não</span>{% else %}<span class="muted">—</span>{% endif %}{% else %}{{ x.a or '—' }}{% endif %} {{ x.o }}</td></tr>{% endfor %}</tbody></table>
+{% if alertas %}<label class="row" style="margin-top:14px"><input type="checkbox" name="alertas" value="1" checked style="width:auto"> Adicionar os {{ alertas|length }} alerta(s) de saúde às observações clínicas do paciente</label>{% endif %}</div>
+<div class="actions"><a class="btn" href="{{ url_for('preconsulta.importar') }}">Cancelar</a><button class="btn primary">Importar para o cadastro</button></div></form>
+{% endblock %}

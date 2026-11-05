@@ -132,6 +132,13 @@ def nova():
             else:
                 rec = store().salvar("appointments", rec, acao=f"Agendamento criado ({tempo.data_br(rec['date'])} {rec['time']})", usuario=web.nome_usuario())
                 flash("Consulta marcada." if rec["type"] != "bloqueio" else "Horário bloqueado.")
+                # primeira consulta do paciente: oferece o formulário de pré-consulta (como o app do computador)
+                if rec["type"] != "bloqueio" and g.clinica.get("preMode") != "desligado":
+                    p = store().get("patients", rec["patientId"]) or {}
+                    outras = [a for a in store().listar("appointments", "paciente_id = ?", (rec["patientId"],))
+                              if a["id"] != rec["id"] and a.get("type") != "bloqueio" and a.get("status") != "cancelado"]
+                    if not outras and (p.get("preConsulta") or {}).get("status") not in ("enviado", "respondido"):
+                        return redirect(url_for("preconsulta.oferecer", pid=p["id"], consulta=rec["id"], voltar=url_for("agenda.ver", data=rec["date"])))
                 return redirect(url_for("agenda.ver", data=rec["date"], dentista=request.args.get("dentista", "")))
         if erros.get("_choque"):
             erros["_choque"] = _enriquecer(erros["_choque"])

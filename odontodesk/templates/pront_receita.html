@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% block titulo %}Nova receita · {{ nome_exibicao(p) }}{% endblock %}
+{% block conteudo %}{% include "_abas_paciente.html" %}
+<div class="card rx"><h2>Nova receita — {{ nome_exibicao(p) }}</h2>
+  <div class="rx-top form"><label>Dentista<select id="rxDen"></select></label><label>Data<input type="date" id="rxDate"></label></div>
+  <div class="rx-search"><input id="rxQ" placeholder="Buscar medicamento: nome genérico, comercial ou dosagem (ex.: amoxicilina, Nisulid, 875)" autocomplete="off"><div class="rx-res hidden" id="rxRes"></div></div>
+  <div class="row" style="margin:6px 0 10px;gap:8px"><button class="btn sm" id="rxFree" type="button">+ Medicamento sem cadastro</button><span class="muted small" id="rxBase"></span></div>
+  <div id="rxItems"></div><div id="rxPat"></div><div id="rxAlerts"></div><div class="rx-summary" id="rxSum"></div>
+  <div class="form" style="margin-top:8px"><label>Impressão das receitas em 2 vias<select id="rxLayout"><option value="duas">Duas vias na mesma folha (A4 deitada)</option><option value="uma">Uma via por folha (A4)</option></select></label></div>
+  <div class="actions"><a class="btn" href="{{ url_for('documentos.documentos', pid=p.id) }}">Cancelar</a><button class="btn primary" id="ok" type="button">Salvar e imprimir</button></div>
+</div>
+<script>window.RX_CFG = {{ cfg|safe }}; window.RX_CSRF = '{{ csrf() }}';</script>
+<script src="{{ url_for('static', filename='medicamentos.js') }}"></script>
+<script src="{{ url_for('static', filename='receita.js') }}"></script>
+{% endblock %}

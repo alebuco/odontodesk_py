@@ -1,5 +1,10 @@
 {% extends "base.html" %}{% from "_macros.html" import csrf_input %}{% block titulo %}Anamnese · {{ nome_exibicao(p) }}{% endblock %}
 {% block conteudo %}{% include "_abas_paciente.html" %}
+{% set pc = p.preConsulta or {} %}
+<div class="card pre-card"><div class="grow"><h2 style="margin:0 0 4px">Formulário de pré-consulta
+{% if pc.status == 'enviado' %}<span class="tag warn">Pré-consulta pendente</span>{% elif pc.status == 'respondido' %}<span class="tag ok">Pré-consulta respondida</span>{% endif %}</h2>
+<div class="muted small">{% if pc.status == 'respondido' %}Respondido pelo paciente em {{ pc.receivedAt|hora_local }}.{% elif pc.status == 'enviado' %}Enviado em {{ pc.sentAt|hora_local }}, aguardando resposta.{% else %}O paciente preenche dados, motivo da consulta e anamnese pelo celular, antes de chegar.{% endif %}</div></div>
+<div class="row" style="flex-wrap:wrap">{% if nivel('pacientes') >= 2 %}<a class="btn sm primary" href="{{ url_for('preconsulta.oferecer', pid=p.id) }}">Enviar formulário</a><a class="btn sm" href="{{ url_for('preconsulta.importar') }}">Importar resposta</a>{% endif %}</div></div>
 <div class="card"><div class="page-head"><h2 style="margin:0">Anamnese</h2><a class="btn" href="{{ url_for('prontuario.anamnese_imprimir', pid=p.id) }}" target="_blank">Imprimir</a></div>
 <p class="muted">{% if an._updated %}Atualizada em {{ an._updated|data }}{% if an._fonte %} ({{ an._fonte }}){% endif %}.{% else %}Ainda não preenchida.{% endif %} As perguntas são as mesmas do app do computador (Configurações → Anamnese).</p>
 <form method="post" class="form">{{ csrf_input() }}<input type="hidden" name="_v" value="{{ p._v }}">

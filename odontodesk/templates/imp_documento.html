@@ -1,0 +1,10 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>{{ titulo }}</title><style>
+body{font-family:Georgia,serif;color:#111;margin:40px 56px;font-size:14px;line-height:1.55}
+.hd{border-bottom:2px solid #0e8f86;padding-bottom:10px;margin-bottom:26px;display:flex;gap:14px;align-items:center}.hd b{font-size:18px}.hd div{font-size:12px;color:#444}
+.hd img{max-height:60px;max-width:160px;object-fit:contain}
+pre{white-space:pre-wrap;font-family:inherit;margin:0}.ft{margin-top:40px;font-size:11px;color:#666;border-top:1px solid #ddd;padding-top:8px}
+.no-print{margin-bottom:16px}@media print{.no-print{display:none}body{margin:0}}
+</style></head><body><div class="no-print"><button onclick="window.print()">Imprimir</button></div>
+<div class="hd">{% if clinica.logo %}<img src="{{ clinica.logo }}" alt="">{% endif %}<div><b>{{ clinica.name }}</b><div>{{ [clinica.address, clinica.city]|select|join(' — ') }}{% if clinica.phone %} · Tel. {{ clinica.phone }}{% endif %}{% if clinica.cnpj %} · CNPJ {{ clinica.cnpj }}{% endif %}</div></div></div>
+<pre>{{ texto }}</pre><div class="ft">Emitido em {{ emitido }}</div>
+<script>setTimeout(function () { window.print(); }, 300);</script></body></html>

@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block titulo %}{{ g.name }}{% endblock %}
+{% block conteudo %}{% include "_abas_paciente.html" %}
+<div class="page-head"><h2 style="margin:0">{{ g.name }}</h2><div class="toolbar"><a class="btn" href="{{ url_for('galeria.galeria', pid=p.id) }}">Voltar à galeria</a>
+<a class="btn" href="{{ url_for('galeria.arquivo', pid=p.id, gid=g.id, baixar=1) }}">Baixar</a></div></div>
+<div class="card">{% if g.kind == 'img' %}{% if g.file %}<img src="{{ url_for('galeria.arquivo', pid=p.id, gid=g.id) }}" style="width:100%;height:auto" alt="{{ g.name }}">{% elif g.data %}<img src="{{ g.data }}" style="width:100%" alt="">{% endif %}
+{% elif g.ext == 'pdf' %}<iframe src="{{ url_for('galeria.arquivo', pid=p.id, gid=g.id) }}" style="width:100%;height:80vh;border:0"></iframe>
+{% else %}<p>Este arquivo ({{ (g.ext or '')|upper }}) não pode ser mostrado aqui. Use <b>Baixar</b> para abrir no computador.</p>{% endif %}
+<p class="muted small">{{ g.date|data }}{% if g.size %} · {{ (g.size / 1024)|round|int }} KB{% endif %}</p></div>
+{% endblock %}

@@ -10,5 +10,7 @@ const { createSqliteDriver } = require(JSDIR + '/testes/driver-sqlite.js');
   else if (ACAO === 'load') out = await st.loadAll();
   else if (ACAO === 'changes') out = await st.changes(JSON.parse(ARG || '{}'));
   else if (ACAO === 'apply') out = await st.apply(JSON.parse(ARG));
+  else if (ACAO === 'filePut') { const a = JSON.parse(ARG); await st.filePut(a.name, require('fs').readFileSync(a.path)); out = await st.fileMeta(a.name); }
+  else if (ACAO === 'fileGet') { const a = JSON.parse(ARG); const b = await st.fileGet(a.name); require('fs').writeFileSync(a.path, b); out = { size: b.length, meta: await st.fileMeta(a.name) }; }
   process.stdout.write(JSON.stringify(out));
 })().catch(e => { console.error(e); process.exit(1); });
