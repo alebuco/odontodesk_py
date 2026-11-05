@@ -1,0 +1,23 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input %}{% block titulo %}Evolução · {{ nome_exibicao(p) }}{% endblock %}
+{% block conteudo %}{% include "_abas_paciente.html" %}
+<div class="card"><h2>{{ 'Nova evolução' if novo else 'Corrigir evolução' }}</h2>
+{% if erro %}<div class="flash erro">{{ erro }}</div>{% endif %}
+<form method="post" class="form" id="fe">{{ csrf_input() }}{% if not novo %}<input type="hidden" name="_v" value="{{ e._v }}">{% endif %}
+  <label class="full">Consulta da agenda<select name="appointmentId" id="evoAp"><option value="">— sem vínculo com a agenda —</option>{% for id, rot, a in consultas %}<option value="{{ id }}" data-date="{{ a.date }}" data-dentist="{{ a.dentistId }}" {{ 'selected' if id == e.appointmentId }}>{{ rot }}</option>{% endfor %}</select></label>
+  <label>Data do atendimento<input type="date" name="date" value="{{ e.date }}" max="{{ hoje }}"></label>
+  <label>Dentista<select name="dentistId"><option value="">—</option>{% for d in dentistas %}<option value="{{ d.id }}" {{ 'selected' if d.id == e.dentistId }}>{{ d.name }}</option>{% endfor %}</select></label>
+  <label class="full">Anotações da consulta<textarea name="text" rows="12" autofocus placeholder="Queixa, exame, procedimentos realizados (dente/face, material, anestesia), orientações, intercorrências, próximos passos…">{{ e.text }}</textarea></label>
+  <p class="muted small full">{% if novo %}Depois de salvar, você pode corrigir por até {{ horas }} horas; depois disso, acrescente um adendo.{% else %}Correções ficam registradas (a versão anterior é guardada).{% endif %}</p>
+</form>
+<div class="actions">
+  {% if not novo %}<form method="post" action="{{ url_for('prontuario.evolucao_excluir', eid=e.id) }}" onsubmit="return confirm('Excluir esta evolução?')">{{ csrf_input() }}<button class="btn danger">Excluir</button></form><span style="flex:1"></span>{% endif %}
+  <a class="btn" href="{{ url_for('prontuario.evolucao', pid=p.id) }}">Cancelar</a><button class="btn primary" form="fe">Salvar evolução</button>
+</div></div>
+<script>
+// ao escolher a consulta, preenche a data e o dentista dela
+document.getElementById('evoAp').addEventListener('change', function () {
+  var o = this.selectedOptions[0], f = this.form;
+  if (o && o.dataset.date) { f.date.value = o.dataset.date; if (o.dataset.dentist) f.dentistId.value = o.dataset.dentist; }
+});
+</script>
+{% endblock %}

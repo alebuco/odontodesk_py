@@ -1,0 +1,19 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input %}{% block titulo %}Anamnese · {{ nome_exibicao(p) }}{% endblock %}
+{% block conteudo %}{% include "_abas_paciente.html" %}
+<div class="card"><div class="page-head"><h2 style="margin:0">Anamnese</h2><a class="btn" href="{{ url_for('prontuario.anamnese_imprimir', pid=p.id) }}" target="_blank">Imprimir</a></div>
+<p class="muted">{% if an._updated %}Atualizada em {{ an._updated|data }}{% if an._fonte %} ({{ an._fonte }}){% endif %}.{% else %}Ainda não preenchida.{% endif %} As perguntas são as mesmas do app do computador (Configurações → Anamnese).</p>
+<form method="post" class="form">{{ csrf_input() }}<input type="hidden" name="_v" value="{{ p._v }}">
+<fieldset {{ 'disabled' if nivel('prontuario') < 2 }} style="border:0;padding:0;margin:0;display:contents">
+  <label class="full"><span style="color:var(--ink)">Motivo da consulta / queixa principal</span><textarea name="_queixa">{{ an._queixa }}</textarea></label>
+  {% for m in perguntas %}
+    {% if m.type == 'yesno' %}
+    <label class="full"><span style="color:var(--ink)">{{ m.q }}</span><span class="row"><select name="{{ m.id }}" style="width:120px">{% for k, t in [('', '—'), ('sim', 'Sim'), ('nao', 'Não')] %}<option value="{{ k }}" {{ 'selected' if (an.get(m.id) or '') == k }}>{{ t }}</option>{% endfor %}</select>
+    <input name="{{ m.id }}_obs" placeholder="Observação" value="{{ an.get(m.id ~ '_obs', '') }}"></span></label>
+    {% else %}
+    <label class="full"><span style="color:var(--ink)">{{ m.q }}</span><textarea name="{{ m.id }}">{{ an.get(m.id, '') }}</textarea></label>
+    {% endif %}
+  {% else %}<p class="muted full">Nenhuma pergunta cadastrada.</p>{% endfor %}
+</fieldset>
+{% if nivel('prontuario') >= 2 %}<div class="actions full"><button class="btn primary">Salvar anamnese</button></div>{% endif %}
+</form></div>
+{% endblock %}

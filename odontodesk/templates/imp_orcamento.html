@@ -1,0 +1,7 @@
+{% extends "_impressao.html" %}{% block titulo %}Orçamento{% endblock %}
+{% block corpo %}{% set cols = 4 if com_codigo else 3 %}<h2>Orçamento — {{ plan.title }}</h2><p>Paciente: <b>{{ (p.socialName ~ ' (nome civil: ' ~ p.name ~ ')') if p.socialName else p.name }}</b><br>Profissional: {{ dentista }}<br>Data: {{ hoje|data }}</p>
+<table><tr><th>Dente</th><th>Faces</th>{% if com_codigo %}<th>Código</th>{% endif %}<th>Procedimento</th><th class="n">Valor</th></tr>
+{% for i in plan['items'] %}<tr><td>{{ i.tooth or 'Geral' }}</td><td>{{ (i.faces or [])|join(', ') }}</td>{% if com_codigo %}<td>{{ i.code }}{% if i.source %} <small>({{ i.source }})</small>{% endif %}</td>{% endif %}<td>{{ i.name }}</td><td class="n">{{ i.price|dinheiro }}</td></tr>{% endfor %}
+<tr><td colspan="{{ cols }}">Subtotal</td><td class="n">{{ sub|dinheiro }}</td></tr>{% if plan.discount %}<tr><td colspan="{{ cols }}">Desconto</td><td class="n">- {{ plan.discount|dinheiro }}</td></tr>{% endif %}
+<tr><td colspan="{{ cols }}"><b>Total</b></td><td class="n"><b>{{ total|dinheiro }}</b></td></tr></table>
+<p style="font-size:12px">Orçamento válido por 30 dias.</p><p style="margin-top:50px">______________________________<br>{{ p.name }}</p>{% endblock %}

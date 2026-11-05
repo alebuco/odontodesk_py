@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input %}{% block titulo %}Adendo · {{ nome_exibicao(p) }}{% endblock %}
+{% block conteudo %}{% include "_abas_paciente.html" %}
+<div class="card"><h2>Adendo à evolução de {{ e.date|data }}</h2>
+<div class="evo-quote">{{ e.text }}</div>
+{% if erro %}<div class="flash erro">{{ erro }}</div>{% endif %}
+<form method="post" class="form">{{ csrf_input() }}<input type="hidden" name="_v" value="{{ e._v }}">
+  <label class="full">Complemento / correção<textarea name="text" rows="6" autofocus></textarea></label>
+  <p class="muted small full">O adendo é acrescentado com seu nome, data e hora; o texto original continua como estava.</p>
+  <div class="actions full"><a class="btn" href="{{ url_for('prontuario.evolucao', pid=p.id) }}">Cancelar</a><button class="btn primary">Acrescentar adendo</button></div>
+</form></div>
+{% endblock %}

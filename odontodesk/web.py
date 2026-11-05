@@ -52,6 +52,8 @@ def registrar_filtros(app):
     app.jinja_env.filters["tel"] = br.telefone_formata
     app.jinja_env.filters["numero_campo"] = numero_campo
     app.jinja_env.filters["mes_nome"] = mes_nome
+    app.jinja_env.filters["hora_local"] = tempo.hora_local
+    app.jinja_env.filters["extenso"] = tempo.data_extenso
     # funções usadas também dentro das macros (que não recebem o contexto da página)
     app.jinja_env.globals.update(csrf=csrf_token, nivel=nivel, eh_admin=eh_admin, nome_exibicao=nome_exibicao)
 

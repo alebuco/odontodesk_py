@@ -1,0 +1,6 @@
+{% extends "_impressao.html" %}{% block titulo %}Evolução — {{ p.name }}{% endblock %}
+{% block corpo %}<h2 style="margin:0">Evolução clínica</h2>
+<p><b>Paciente:</b> {{ (p.socialName ~ ' (nome civil: ' ~ p.name ~ ')') if p.socialName else p.name }}{% if p.cpf %} · CPF {{ p.cpf }}{% endif %}{% if p.birth %} · nascimento {{ p.birth|data }}{% endif %}</p>
+{% for e in lista %}{% set d = dent.get(e.dentistId) or {} %}<div style="border-top:1px solid #ccc;padding:10px 0;page-break-inside:avoid"><b>{{ e.date|data }}</b>{% if d.name %} — {{ d.name }}{% if d.cro %} ({{ d.cro }}){% endif %}{% endif %}
+<pre style="white-space:pre-wrap;font-family:inherit">{{ e.text }}</pre>{% for a in e.addenda or [] %}<p style="margin:6px 0 0 16px"><i>Adendo ({{ a.at|hora_local }}, {{ a.authorName }}):</i></p><pre style="margin-left:16px;white-space:pre-wrap;font-family:inherit">{{ a.text }}</pre>{% endfor %}
+<div style="font-size:11px;color:#666">Registrado por {{ e.authorName }} em {{ e.createdAt|hora_local }}{% if e.history %} · corrigido {{ e.history|length }}×{% endif %}</div></div>{% else %}<p>Nenhuma evolução.</p>{% endfor %}{% endblock %}

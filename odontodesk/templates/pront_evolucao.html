@@ -1,0 +1,20 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input %}{% block titulo %}Evolução · {{ nome_exibicao(p) }}{% endblock %}
+{% block conteudo %}{% include "_abas_paciente.html" %}
+<form class="toolbar" method="get">
+  <input name="q" placeholder="Buscar nas anotações" value="{{ q }}" style="width:240px">
+  <select name="dentista" onchange="this.form.submit()"><option value="">Todos os dentistas</option>{% for d in dentistas %}<option value="{{ d.id }}" {{ 'selected' if d.id == fd }}>{{ d.name }}</option>{% endfor %}</select>
+  <button class="btn">Filtrar</button><span class="grow"></span>
+  <a class="btn" href="{{ url_for('prontuario.evolucao_imprimir', pid=p.id) }}" target="_blank">Imprimir evolução</a>
+  {% if nivel('prontuario') >= 2 %}<a class="btn primary" href="{{ url_for('prontuario.evolucao_nova', pid=p.id) }}">+ Nova evolução</a>{% endif %}
+</form>
+{% if consulta_hoje and nivel('prontuario') >= 2 %}<a class="alert info-alert" style="display:block;text-decoration:none;color:inherit" href="{{ url_for('prontuario.evolucao_nova', pid=p.id, consulta=consulta_hoje.id) }}">Consulta de hoje às <b>{{ consulta_hoje.time }}</b> com {{ (dent.get(consulta_hoje.dentistId) or {}).get('name', '—') }} ainda sem evolução — clique para registrar.</a>{% endif %}
+{% if lista %}<div class="evo-list">{% for e in lista %}{% set a = ags.get(e.appointmentId) %}
+<article class="card evo-card"><header><div><b class="evo-date">{{ e.date|extenso }}</b>
+  <div class="muted small">{{ (dent.get(e.dentistId) or {}).get('name', '') }}{% if a %} · consulta das {{ a.time }}{% if a.procId in proc %} · {{ proc[a.procId].name }}{% endif %}{% endif %}</div></div>
+  <span class="grow"></span><div class="evo-actions">{% if pode_editar(e) %}<a class="btn sm" href="{{ url_for('prontuario.evolucao_editar', eid=e.id) }}">Editar</a>{% endif %}{% if nivel('prontuario') >= 2 %}<a class="btn sm" href="{{ url_for('prontuario.evolucao_adendo', eid=e.id) }}">Adendo</a>{% endif %}</div></header>
+  <div class="evo-text">{{ e.text }}</div>
+  {% for ad in e.addenda or [] %}<div class="evo-add"><div class="muted small"><b>Adendo</b> · {{ ad.authorName }} · {{ ad.at|hora_local }}</div><div class="evo-text">{{ ad.text }}</div></div>{% endfor %}
+  <footer class="muted small">Registrado por {{ e.authorName or '—' }} em {{ e.createdAt|hora_local }}{% if e.history %} · <a href="{{ url_for('prontuario.evolucao_versoes', eid=e.id) }}">corrigido {{ e.history|length }}× (ver versões)</a>{% endif %}</footer>
+</article>{% endfor %}</div>
+{% else %}<div class="card"><div class="empty">{{ 'Nenhuma anotação encontrada no filtro.' if total else 'Nenhuma evolução registrada para este paciente.' }}</div></div>{% endif %}
+{% endblock %}

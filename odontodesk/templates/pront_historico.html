@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% from "_macros.html" import status_tag %}{% block titulo %}Histórico · {{ nome_exibicao(p) }}{% endblock %}
+{% block conteudo %}{% include "_abas_paciente.html" %}
+<div class="card">{% if ev %}<ul class="list-plain">{% for d, t, s in ev %}<li><span><b>{{ d|data }}</b> · {{ t }}</span>
+{% if s %}{% if s[0] == 'status' %}{{ status_tag(s[1], (s[1] or '')|capitalize) }}{% else %}<span class="tag {{ s[0] }}">{{ s[1] }}</span>{% endif %}{% endif %}</li>{% endfor %}</ul>
+{% else %}<div class="empty">Sem histórico.</div>{% endif %}</div>
+{% endblock %}

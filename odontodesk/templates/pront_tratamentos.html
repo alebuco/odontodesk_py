@@ -1,0 +1,64 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input %}{% block titulo %}Odontograma · {{ nome_exibicao(p) }}{% endblock %}
+{% macro dente(n, est) -%}
+{%- set q = n // 10 -%}{%- set sup = q in [1, 2, 5, 6] -%}{%- set dir = q in [1, 4, 5, 8] -%}
+{%- set top = 'V' if sup else 'L' -%}{%- set bot = 'L' if sup else 'V' -%}{%- set esq = 'D' if dir else 'M' -%}{%- set dirf = 'M' if dir else 'D' -%}
+<div class="tooth" data-n="{{ n }}"><span class="num">{{ n }}</span><svg viewBox="0 0 40 40" data-tooth="{{ n }}">
+<path data-face="{{ top }}" class="{{ est.get(top, '') }}" d="M2 2 L38 2 L28 12 L12 12 Z"/><path data-face="{{ bot }}" class="{{ est.get(bot, '') }}" d="M2 38 L38 38 L28 28 L12 28 Z"/>
+<path data-face="{{ esq }}" class="{{ est.get(esq, '') }}" d="M2 2 L12 12 L12 28 L2 38 Z"/><path data-face="{{ dirf }}" class="{{ est.get(dirf, '') }}" d="M38 2 L28 12 L28 28 L38 38 Z"/>
+<rect data-face="O" class="{{ est.get('O', '') }}" x="12" y="12" width="16" height="16"/></svg></div>
+{%- endmacro %}
+{% block conteudo %}{% include "_abas_paciente.html" %}
+<div class="toolbar">
+  {% if planos %}<form method="get"><select name="plano" onchange="this.form.submit()">{% for t in planos %}<option value="{{ t.id }}" {{ 'selected' if plan and t.id == plan.id }}>{{ t.title }} — {{ t.createdAt|data }}</option>{% endfor %}</select></form>{% endif %}
+  <span class="grow"></span>
+  {% if nivel('prontuario') >= 2 %}<details class="novo-plano"><summary class="btn primary">+ Novo plano de tratamento</summary>
+    <form method="post" action="{{ url_for('prontuario.plano_novo', pid=p.id) }}" class="form card" style="position:absolute;right:28px;z-index:5;width:420px">{{ csrf_input() }}
+      <label class="full">Título<input name="title" value="Plano de tratamento {{ planos|length + 1 }}"></label>
+      <label>Dentista responsável<select name="dentistId">{% for d in dentistas %}<option value="{{ d.id }}">{{ d.name }}</option>{% endfor %}</select></label>
+      <label>Dentição<select name="dentition"><option value="permanente">Permanente</option><option value="decidua">Decídua</option><option value="mista">Mista</option></select></label>
+      <div class="actions full"><button class="btn primary">Criar</button></div></form></details>{% endif %}
+</div>
+{% if not plan %}<div class="card empty">Nenhum plano de tratamento. Crie um para montar o odontograma e o orçamento.</div>
+{% else %}
+<div class="card">
+  <div class="row" style="justify-content:space-between"><h2 style="margin:0">{{ plan.title }} <span class="tag {{ status[1] }}">{{ status[0] }}</span></h2><span class="muted">Responsável: {{ dentista }}</span></div>
+  <div class="odonto" id="odonto">{% for arc in arcadas %}{% if arc is none %}<div style="height:6px"></div>{% else %}<div class="arch">{% for n in arc %}{% if loop.index0 == arc|length // 2 %}<span class="gap"></span>{% endif %}{{ dente(n, faces.get(n|string, {})) }}{% endfor %}</div>{% endif %}{% endfor %}</div>
+  <div class="legend"><span><i style="background:#99f6e4"></i>Selecionado</span><span><i style="background:#fecaca"></i>Planejado</span><span><i style="background:#93c5fd"></i>Realizado</span></div>
+  {% if nivel('prontuario') >= 2 %}
+  <form method="post" action="{{ url_for('prontuario.plano_item', tid=plan.id) }}" class="toolbar" style="margin:16px 0 0">{{ csrf_input() }}<input type="hidden" name="_v" value="{{ plan._v }}">
+    <input type="hidden" name="tooth" id="selTooth"><input type="hidden" name="faces" id="selFaces">
+    <span id="selInfo"><b>Clique num dente/face</b></span>
+    <select name="procId" style="min-width:280px;max-width:520px" required><option value="">Procedimento…</option>{% for id, nome in procs %}<option value="{{ id }}">{{ nome }}</option>{% endfor %}</select>
+    <button class="btn primary" id="addBtn">Adicionar (geral / arcada)</button>
+    <button class="btn hidden" type="button" id="clrSel">Limpar seleção</button>
+  </form>{% endif %}
+</div>
+<div class="card"><h2>Procedimentos do plano</h2>
+  {% if plan['items'] %}
+  <form method="post" action="{{ url_for('prontuario.plano_itens', tid=plan.id) }}" id="fitens">{{ csrf_input() }}<input type="hidden" name="_v" value="{{ plan._v }}">
+  <table><thead><tr><th>Dente</th><th>Faces</th><th>Procedimento</th><th>Status</th><th class="num">Valor</th><th></th></tr></thead><tbody>
+  {% for i in plan['items'] %}<tr><td>{{ i.tooth or 'Geral' }}</td><td>{{ (i.faces or [])|join(', ') or '—' }}</td>
+    <td>{{ i.name }}{% if i.code %}<br><span class="muted small"><code>{{ i.code }}</code> {{ i.source }}</span>{% endif %}</td>
+    <td><select name="st_{{ i.id }}" style="width:auto" {{ 'disabled' if nivel('prontuario') < 2 }}>{% for k, t in [('planejado','Planejado'),('realizado','Realizado')] %}<option value="{{ k }}" {{ 'selected' if i.status == k }}>{{ t }}</option>{% endfor %}</select></td>
+    <td class="num"><input name="pr_{{ i.id }}" value="{{ i.price|numero_campo }}" style="width:100px;text-align:right" {{ 'disabled' if nivel('prontuario') < 2 }}></td>
+    <td class="right">{% if nivel('prontuario') >= 2 %}<button class="btn sm danger" form="rm_{{ i.id }}">Remover</button>{% endif %}</td></tr>{% endfor %}
+  </tbody></table>
+  <table style="max-width:360px;margin-left:auto"><tr><td>Subtotal</td><td class="num">{{ sub|dinheiro }}</td></tr>
+    <tr><td>Desconto (R$)</td><td class="num"><input name="discount" value="{{ plan.discount|numero_campo }}" style="width:100px;text-align:right" {{ 'disabled' if nivel('prontuario') < 2 }}></td></tr>
+    <tr><td><b>Total</b></td><td class="num"><b>{{ total|dinheiro }}</b></td></tr><tr><td class="muted">Já realizado</td><td class="num muted">{{ feito|dinheiro }}</td></tr></table>
+  </form>
+  {% for i in plan['items'] %}<form id="rm_{{ i.id }}" method="post" action="{{ url_for('prontuario.plano_item_remover', tid=plan.id, iid=i.id) }}">{{ csrf_input() }}<input type="hidden" name="_v" value="{{ plan._v }}"></form>{% endfor %}
+  {% else %}<div class="empty">Selecione um dente e um procedimento para incluir no plano.</div>{% endif %}
+  <div class="actions">
+    {% if nivel('prontuario') >= 2 %}<form method="post" action="{{ url_for('prontuario.plano_excluir', tid=plan.id) }}" onsubmit="return confirm('Excluir este plano de tratamento?')">{{ csrf_input() }}<button class="btn danger">Excluir plano</button></form>{% endif %}<span style="flex:1"></span>
+    {% if plan['items'] and nivel('prontuario') >= 2 %}<button class="btn" form="fitens">Salvar alterações</button>{% endif %}
+    <a class="btn" href="{{ url_for('prontuario.plano_orcamento', tid=plan.id) }}" target="_blank">Imprimir orçamento</a>
+    {% if whatsapp %}<a class="btn" href="{{ whatsapp }}" target="_blank" rel="noopener">Enviar por WhatsApp</a>{% endif %}
+    {% if nivel('prontuario') >= 2 %}
+      {% if plan.status == 'orcamento' and plan['items'] %}<a class="btn primary" href="{{ url_for('prontuario.plano_aprovar', tid=plan.id) }}">Aprovar e gerar cobrança</a>{% endif %}
+      {% if plan.status == 'aprovado' %}<form method="post" action="{{ url_for('prontuario.plano_concluir', tid=plan.id) }}" onsubmit="return confirm('Marcar o plano como concluído? Todos os procedimentos ficam como realizados.')">{{ csrf_input() }}<button class="btn primary">Marcar como concluído</button></form>{% endif %}
+    {% endif %}
+  </div></div>
+<script src="{{ url_for('static', filename='odonto.js') }}"></script>
+{% endif %}
+{% endblock %}

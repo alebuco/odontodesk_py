@@ -1,0 +1,14 @@
+<div class="page-head no-print"><div><h1><a href="{{ url_for('pacientes.ficha', id=p.id) }}" style="color:inherit;text-decoration:none">{{ nome_exibicao(p) }}</a></h1>
+<p class="sub">{% if p.socialName %}Nome civil: {{ p.name }} · {% endif %}{% if p.birth %}{{ p.birth|data }} · {% endif %}{{ p.phone or 'sem telefone' }}</p></div>
+<div class="toolbar">{% if nivel('agenda') >= 2 %}<a class="btn" href="{{ url_for('agenda.nova', paciente=p.id) }}">Agendar</a>{% endif %}{% if nivel('pacientes') >= 2 %}<a class="btn" href="{{ url_for('pacientes.editar', id=p.id) }}">Editar dados</a>{% endif %}</div></div>
+<div class="tabs-py no-print">
+  <a href="{{ url_for('pacientes.ficha', id=p.id) }}" class="{{ 'active' if aba == 'dados' }}">Ficha</a>
+  {% if nivel('prontuario') %}
+  <a href="{{ url_for('prontuario.evolucao', pid=p.id) }}" class="{{ 'active' if aba == 'evolucao' }}">Evolução</a>
+  <a href="{{ url_for('prontuario.anamnese', pid=p.id) }}" class="{{ 'active' if aba == 'anamnese' }}">Anamnese</a>
+  <a href="{{ url_for('prontuario.tratamentos', pid=p.id) }}" class="{{ 'active' if aba == 'tratamentos' }}">Odontograma e Financeiro</a>
+  {% endif %}
+  {% if nivel('financeiro') %}<a href="{{ url_for('pacientes.ficha', id=p.id, aba='pagamentos') }}" class="{{ 'active' if aba == 'pagamentos' }}">Pagamentos</a>{% endif %}
+  {% if nivel('agenda') %}<a href="{{ url_for('pacientes.ficha', id=p.id, aba='consultas') }}" class="{{ 'active' if aba == 'consultas' }}">Consultas</a>{% endif %}
+  {% if nivel('prontuario') %}<a href="{{ url_for('prontuario.historico', pid=p.id) }}" class="{{ 'active' if aba == 'historico' }}">Histórico</a>{% endif %}
+</div>

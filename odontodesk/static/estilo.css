@@ -464,3 +464,7 @@ main table a:hover, .list-plain a:hover { text-decoration: underline; color: var
   .sidebar-foot > div:nth-last-child(-n+2) { display: none; }
   .appt { min-width: 0; }
 }
+details.novo-plano > summary { list-style: none; cursor: pointer; }
+details.novo-plano > summary::-webkit-details-marker { display: none; }
+.hidden { display: none !important; }
+.info-alert { margin-bottom: 12px; }

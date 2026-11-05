@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block titulo %}Versões · {{ nome_exibicao(p) }}{% endblock %}
+{% block conteudo %}{% include "_abas_paciente.html" %}
+<div class="card"><h2>Versões da evolução de {{ e.date|data }}</h2>
+{% for h in e.history or [] %}<div class="evo-add"><div class="muted small"><b>Versão {{ loop.index }}</b> (substituída em {{ h.at|hora_local }}{% if h.by %} por {{ h.by }}{% endif %}){% if h.date != e.date %} · data do atendimento era {{ h.date|data }}{% endif %}</div><div class="evo-text">{{ h.text }}</div></div>{% endfor %}
+<div class="evo-add"><div class="muted small"><b>Versão atual</b>{% if e.editedAt %} ({{ e.editedAt|hora_local }}){% endif %}</div><div class="evo-text">{{ e.text }}</div></div>
+<div class="actions"><a class="btn" href="{{ url_for('prontuario.evolucao', pid=p.id) }}">Voltar</a></div></div>
+{% endblock %}

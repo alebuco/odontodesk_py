@@ -1,0 +1,5 @@
+{% extends "_impressao.html" %}{% block titulo %}Anamnese{% endblock %}
+{% block corpo %}<h2>Anamnese — {{ (p.socialName ~ ' (nome civil: ' ~ p.name ~ ')') if p.socialName else p.name }}</h2>
+{% if an._queixa %}<p><b>Motivo da consulta:</b> {{ an._queixa }}</p>{% endif %}
+<table>{% for m in perguntas %}<tr><td>{{ m.q }}</td><td><b>{{ {'sim': 'Sim', 'nao': 'Não'}.get(an.get(m.id), an.get(m.id) or '—') }}</b> {{ an.get(m.id ~ '_obs', '') }}</td></tr>{% endfor %}</table>
+<p style="margin-top:50px">______________________________<br>{{ p.name }}</p>{% endblock %}

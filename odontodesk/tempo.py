@@ -49,3 +49,45 @@ def soma_meses(iso, n):
 
 def data_br(iso):
     return "/".join(reversed(str(iso)[:10].split("-"))) if iso else ""
+
+
+def agora_iso_utc():
+    """Instante atual no formato do app em JavaScript (toISOString): 2026-11-05T13:15:00.123Z"""
+    t = datetime.datetime.now(datetime.timezone.utc)
+    return t.strftime("%Y-%m-%dT%H:%M:%S.") + f"{t.microsecond // 1000:03d}Z"
+
+
+def de_iso(iso):
+    """Converte um instante ISO (com Z ou fuso) para datetime com fuso; None se inválido."""
+    if not iso:
+        return None
+    try:
+        t = datetime.datetime.fromisoformat(str(iso).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return t if t.tzinfo else t.replace(tzinfo=_FUSO)
+
+
+def hora_local(iso):
+    """'05/11/2026 10:15' no fuso da clínica."""
+    t = de_iso(iso)
+    return t.astimezone(_FUSO).strftime("%d/%m/%Y %H:%M") if t else ""
+
+
+def horas_desde(iso):
+    t = de_iso(iso)
+    if not t:
+        return 1e9
+    return (datetime.datetime.now(datetime.timezone.utc) - t).total_seconds() / 3600
+
+
+DIAS_SEMANA = ["segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado", "domingo"]
+MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"]
+
+
+def data_extenso(iso):
+    """'Quinta-feira, 05 de novembro de 2026'"""
+    if not iso:
+        return ""
+    d = datetime.date.fromisoformat(str(iso)[:10])
+    return f"{DIAS_SEMANA[d.weekday()].capitalize()}, {d.day:02d} de {MESES[d.month - 1]} de {d.year}"
