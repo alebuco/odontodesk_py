@@ -58,6 +58,14 @@ Nas próximas vezes, basta rodar: `venv\Scripts\activate` e depois `python execu
 
 Para testar sem mexer nos dados reais, use `tipo: sqlite` no `--configurar`. Isso cria um banco de teste num arquivo e, no primeiro acesso, pede para cadastrar a clínica e o administrador.
 
+## Usar como aplicativo do computador (ícone na Área de Trabalho)
+
+Abre numa **aba do Brave** (se estiver instalado) ou numa janela própria do Edge/Chrome. Liga só neste computador e desliga sozinho 5 minutos depois de fechadas as abas do OdontoDesk. Para preferir outro navegador, ponha no config.json `"navegador": "edge"` (ou `"chrome"`).
+
+- **Windows:** depois de configurar o banco (`python executar.py --configurar`), dê dois cliques em `instalar_atalho.bat`. Ele instala os pacotes e cria o ícone **OdontoDesk (Python)** na Área de Trabalho e no Menu Iniciar. Usa o Brave; sem ele, o Edge (que já vem no Windows) ou o Chrome.
+- **Linux (Mint):** `bash instalar_atalho.sh` e procure "OdontoDesk (Python)" no menu. Precisa do Chrome, Chromium ou Edge instalado.
+- Se algo der errado, a mensagem aparece na tela e os detalhes ficam em `%LOCALAPPDATA%\OdontoDesk-Python\odontodesk.log` (no Linux, `~/.local/share/OdontoDesk-Python/`).
+
 ## Colocar na nuvem (a máquina da Oracle, junto do servidor atual)
 
 Pelo **Cloud Shell** da Oracle, como na instalação do Servidor OdontoDesk:
@@ -81,6 +89,7 @@ Como no app do celular, só os aparelhos com o **Tailscale ligado** na sua conta
 ```
 odontodesk-py/
 ├── executar.py              inicia o sistema (e --configurar)
+├── desktop.py               abre como aplicativo (janela própria); instalar_atalho.bat/.sh criam o ícone
 ├── requirements.txt         pacotes: Flask, PyMySQL, waitress, tzdata, Brotli, Pillow, numpy
 ├── odontodesk/
 │   ├── app.py               cria a aplicação, versão, erros, segurança

@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="pt-BR">
-<head>
+<head><link rel="icon" href="{{ url_for('static', filename='icone.png') }}">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block titulo %}OdontoDesk{% endblock %} · OdontoDesk</title>
@@ -42,5 +42,6 @@
     {% endwith %}
     {% block conteudo %}{% endblock %}
   </main>
+{% if config.DESKTOP %}<script>setInterval(function () { fetch("/_vivo", { credentials: "same-origin" }).catch(function () {}); }, 60000);</script>{% endif %}
 </body>
 </html>
