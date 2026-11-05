@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block titulo %}Protéticos{% endblock %}
+{% block conteudo %}
+<div class="page-head"><div><h1>Protéticos e laboratórios</h1></div><div class="toolbar"><a class="btn" href="{{ url_for('proteses.lista') }}">Voltar aos trabalhos</a>{% if nivel('proteses') >= 2 %}<a class="btn primary" href="{{ url_for('proteses.protetico') }}">+ Novo protético</a>{% endif %}</div></div>
+<div class="card" style="padding:4px 8px">{% if linhas %}<table><thead><tr><th>Nome</th><th>Telefone</th><th class="num">Em andamento</th><th class="num">Total</th><th class="num">A pagar</th></tr></thead><tbody>
+{% for l in linhas %}<tr><td><a href="{{ url_for('proteses.protetico', id=l.x.id) }}"><b>{{ l.x.name }}</b></a>{% if l.x.lab %}<div class="muted">{{ l.x.lab }}</div>{% endif %}</td><td>{{ l.x.phone }}</td><td class="num">{{ l.abertos }}</td><td class="num">{{ l.total }}</td><td class="num">{{ l.a_pagar|dinheiro if l.a_pagar else '—' }}</td></tr>{% endfor %}
+</tbody></table>{% else %}<div class="empty">Nenhum protético cadastrado.</div>{% endif %}</div>
+{% endblock %}

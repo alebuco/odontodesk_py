@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% block titulo %}Histórico do estoque{% endblock %}
+{% block conteudo %}
+<div class="page-head"><h1>Histórico de movimentações</h1><a class="btn" href="{{ url_for('estoque.lista') }}">Voltar ao estoque</a></div>
+<p class="muted">{% if nivel('estoque') >= 2 %}Clique num lançamento para corrigir quantidade, validade ou lote.{% endif %}</p>
+<div class="card" style="padding:4px 8px">{% if movs %}<table><thead><tr><th>Data</th><th>Item</th><th>Tipo</th><th class="num">Qtd.</th><th>Validade</th><th>Lote</th><th>Obs.</th></tr></thead><tbody>
+{% for m in movs %}{% set s = itens.get(m.productId) or {} %}<tr><td>{% if nivel('estoque') >= 2 %}<a href="{{ url_for('estoque.corrigir', mid=m.id) }}">{{ m.date|data }}</a>{% else %}{{ m.date|data }}{% endif %}</td>
+<td>{{ s.name or '(item removido)' }}</td><td><span class="tag {{ 'ok' if m.kind == 'entrada' else 'warn' }}">{{ 'Entrada' if m.kind == 'entrada' else 'Saída' }}</span></td>
+<td class="num">{{ m.qty|qtd }} {{ s.unit }}</td><td>{{ m.expiry|data }}</td><td>{{ m.lot }}</td><td class="muted">{{ m.note }}</td></tr>{% endfor %}
+</tbody></table>{% else %}<div class="empty">Nenhuma movimentação.</div>{% endif %}</div>
+{% endblock %}

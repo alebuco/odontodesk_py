@@ -18,7 +18,13 @@
       {% if nivel('painel') %}<a href="{{ url_for('painel.inicio') }}" class="{{ 'active' if atual == 'painel.inicio' }}">Painel</a>{% endif %}
       {% if nivel('agenda') %}<a href="{{ url_for('agenda.ver') }}" class="{{ 'active' if atual.startswith('agenda.') }}">Agenda</a>{% endif %}
       {% if nivel('pacientes') %}<a href="{{ url_for('pacientes.lista') }}" class="{{ 'active' if atual.startswith('pacientes.') }}">Pacientes</a>{% endif %}
+      {% if nivel('procedimentos') %}<a href="{{ url_for('cadastros.procedimentos') }}" class="{{ 'active' if atual.startswith('cadastros.procedimento') }}">Procedimentos</a>{% endif %}
       {% if nivel('financeiro') %}<a href="{{ url_for('financeiro.mes') }}" class="{{ 'active' if atual.startswith('financeiro.') }}">Financeiro</a>{% endif %}
+      {% if nivel('proteses') %}<a href="{{ url_for('proteses.lista') }}" class="{{ 'active' if atual.startswith('proteses.') }}">Próteses</a>{% endif %}
+      {% if nivel('estoque') %}<a href="{{ url_for('estoque.lista') }}" class="{{ 'active' if atual.startswith('estoque.') }}">Estoque</a>{% endif %}
+      {% if nivel('documentos') %}<a href="{{ url_for('cadastros.modelos') }}" class="{{ 'active' if atual.startswith('cadastros.modelo') }}">Modelos de documentos</a>{% endif %}
+      {% if nivel('config') %}<a href="{{ url_for('cadastros.configuracoes') }}" class="{{ 'active' if atual.startswith('cadastros.config') }}">Configurações</a>{% endif %}
+      {% if eh_admin() %}<a href="{{ url_for('usuarios.lista') }}" class="{{ 'active' if atual.startswith('usuarios.') }}">Usuários e acessos</a>{% endif %}
       <a href="{{ url_for('painel.sobre') }}" class="{{ 'active' if atual == 'painel.sobre' }}">Sobre</a>
     </nav>
     <div class="sidebar-foot">

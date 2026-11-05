@@ -1,0 +1,18 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input, erro %}{% block titulo %}Procedimento{% endblock %}
+{% block conteudo %}
+<h1>{{ 'Novo procedimento' if novo else 'Procedimento' }}</h1>
+{% if erros._dup %}<div class="flash aviso">{{ erros._dup }} Marque "Salvar mesmo assim" para confirmar.</div>{% endif %}
+<div class="card"><form method="post" class="form" id="fp">{{ csrf_input() }}{% if not novo %}<input type="hidden" name="_v" value="{{ p._v }}">{% endif %}
+<fieldset {{ 'disabled' if nivel('procedimentos') < 2 }} style="border:0;padding:0;margin:0;display:contents">
+  <label>Fonte do código<select name="source">{% for k, t in fontes %}<option value="{{ k }}" {{ 'selected' if k == v.source }}>{{ t }}</option>{% endfor %}</select></label>
+  <label>Código<input name="code" value="{{ v.code }}" autocomplete="off" placeholder="TUSS: 8 dígitos · SUS: 03.07.01.003-1" class="{{ 'invalid' if erros.code }}">{{ erro(erros,'code') }}</label>
+  <label class="full">Nome<input name="name" value="{{ v.name }}" class="{{ 'invalid' if erros.name }}">{{ erro(erros,'name') }}</label>
+  <label>Categoria<input name="category" value="{{ v.category }}" list="cats"></label><datalist id="cats">{% for c in categorias %}<option value="{{ c }}">{% endfor %}</datalist>
+  <label>Valor (R$)<input name="price" value="{{ v.price }}" inputmode="decimal" class="{{ 'invalid' if erros.price }}">{{ erro(erros,'price') }}</label>
+  {% if erros._dup %}<label class="check full"><input type="checkbox" name="mesmo_assim" value="1"> Salvar mesmo assim</label>{% endif %}
+</fieldset></form>
+<div class="actions">
+  {% if not novo and nivel('procedimentos') >= 2 %}<form method="post" action="{{ url_for('cadastros.procedimento_excluir', id=p.id) }}" onsubmit="return confirm('Excluir procedimento?')">{{ csrf_input() }}<button class="btn danger">Excluir</button></form><span style="flex:1"></span>{% endif %}
+  <a class="btn" href="{{ url_for('cadastros.procedimentos') }}">Cancelar</a>{% if nivel('procedimentos') >= 2 %}<button class="btn primary" form="fp">Salvar</button>{% endif %}
+</div></div>
+{% endblock %}

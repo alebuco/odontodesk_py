@@ -1,0 +1,53 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input %}{% block titulo %}Trabalho protético{% endblock %}
+{% block conteudo %}
+{% set ed = nivel('proteses') >= 2 %}
+<div class="page-head"><h1>{{ 'Novo trabalho protético' if novo else 'Trabalho protético' }}</h1>
+{% if s %}<span class="tag {{ {'lab': 'bad' if s.late else 'info', 'clinic': 'warn', 'done': 'ok'}.get(s.key, '') }}">{{ s.label }}</span>{% endif %}</div>
+{% if erro %}<div class="flash erro">{{ erro }}</div>{% endif %}
+<form method="post" id="fw">{{ csrf_input() }}{% if not novo %}<input type="hidden" name="_v" value="{{ w._v }}">{% endif %}
+<fieldset {{ 'disabled' if not ed }} style="border:0;padding:0;margin:0">
+<div class="card"><div class="form">
+  <label>Paciente<select name="patientId"><option value="">Selecione…</option>{% for p in pacientes %}<option value="{{ p.id }}" {{ 'selected' if p.id == w.patientId }}>{{ p.name }}</option>{% endfor %}</select></label>
+  <label>Dentista<select name="dentistId"><option value="">—</option>{% for d in dentistas %}<option value="{{ d.id }}" {{ 'selected' if d.id == w.dentistId }}>{{ d.name }}</option>{% endfor %}</select></label>
+  <label>Protético<select name="prosthetistId"><option value="">Selecione…</option>{% for x in proteticos %}<option value="{{ x.id }}" {{ 'selected' if x.id == w.prosthetistId }}>{{ x.name }}{{ ' — ' ~ x.lab if x.lab }}</option>{% endfor %}</select>
+    <a class="small" href="{{ url_for('proteses.protetico', voltar=request.path) }}">+ cadastrar protético</a></label>
+  <label>Tipo de trabalho<select name="type" id="tipo">{% for t in tipos %}<option {{ 'selected' if t == w.type }}>{{ t }}</option>{% endfor %}</select></label>
+  <label>Dentes / região<input name="teeth" value="{{ w.teeth }}" placeholder="Ex.: 11, 21 ou arcada superior"></label>
+  <label>Cor<input name="shade" value="{{ w.shade }}" placeholder="Ex.: A2 (escala Vita)"></label>
+  <label>Valor do protético (R$)<input name="value" value="{{ w.value|numero_campo }}" inputmode="decimal"></label>
+  <label>Situação<select name="status">{% for k, t in [('andamento','Em andamento'),('concluido','Concluído'),('cancelado','Cancelado')] %}<option value="{{ k }}" {{ 'selected' if k == (w.status or 'andamento') }}>{{ t }}</option>{% endfor %}</select></label>
+</div>
+<fieldset class="lab-pay" style="margin-top:12px"><legend>Pagamento ao protético</legend><div class="form">
+  <label class="check"><input type="checkbox" name="paid" value="1" {{ 'checked' if pago }}> Pago</label>
+  <label>Data do pagamento<input type="date" name="paidDate" value="{{ data_pago }}"></label>
+  <label>Vencimento<input type="date" name="payDue" value="{{ vencimento }}"></label>
+  <label class="check"><input type="checkbox" name="toFin" value="1" {{ 'checked' if lancar }}> {{ 'Lançado no financeiro (contas a pagar)' if fin else 'Lançar no financeiro (contas a pagar)' }}</label>
+</div></fieldset></div>
+<div class="card"><div class="page-head"><h2 style="margin:0">Fases do trabalho</h2>{% if ed %}<div class="toolbar"><button type="button" class="btn sm" id="phStd">Usar fases padrão do tipo</button><button type="button" class="btn sm" id="phAdd">+ Fase</button></div>{% endif %}</div>
+<table class="ph-table"><thead><tr><th>#</th><th>Fase</th><th>Envio ao lab.</th><th>Previsão</th><th>Recebimento</th><th>Observação</th><th></th></tr></thead><tbody id="phBody">
+{% for p in w.phases or [] %}<tr><td class="n">{{ loop.index }}</td><td><input type="hidden" name="ph_id" value="{{ p.id }}"><input name="ph_name" value="{{ p.name }}"></td>
+<td><input type="date" name="ph_sent" value="{{ p.sent }}"></td><td><input type="date" name="ph_due" value="{{ p.due }}"></td><td><input type="date" name="ph_received" value="{{ p.received }}"></td>
+<td><input name="ph_note" value="{{ p.note }}"></td><td>{% if ed %}<button type="button" class="btn sm icon-b ph-rm" title="Remover">×</button>{% endif %}</td></tr>{% endfor %}
+</tbody></table></div>
+<div class="card form"><label class="full">Observações<textarea name="notes" rows="2">{{ w.notes }}</textarea></label></div>
+</fieldset></form>
+<div class="actions">
+  {% if not novo and ed %}<form method="post" action="{{ url_for('proteses.excluir', id=w.id) }}" onsubmit="return confirm('Excluir este trabalho protético?{{ ' A conta a pagar dele também sai do financeiro.' if fin }}')">{{ csrf_input() }}<button class="btn danger">Excluir</button></form>{% endif %}
+  {% if not novo %}<a class="btn" href="{{ url_for('proteses.ordem', id=w.id) }}" target="_blank">Imprimir ordem de serviço</a>{% endif %}<span style="flex:1"></span>
+  <a class="btn" href="{{ url_for('proteses.lista') }}">Cancelar</a>{% if ed %}<button class="btn primary" form="fw">Salvar</button>{% endif %}
+</div>
+<template id="phRow"><tr><td class="n"></td><td><input type="hidden" name="ph_id" value=""><input name="ph_name" value=""></td><td><input type="date" name="ph_sent"></td><td><input type="date" name="ph_due"></td><td><input type="date" name="ph_received"></td><td><input name="ph_note"></td><td><button type="button" class="btn sm icon-b ph-rm" title="Remover">×</button></td></tr></template>
+<script>
+(function () {
+  var PADRAO = {{ lab_types|tojson }}, body = document.getElementById('phBody'), tpl = document.getElementById('phRow');
+  function numera() { body.querySelectorAll('tr').forEach(function (tr, i) { tr.querySelector('.n').textContent = i + 1; }); }
+  function linha(nome) { var tr = tpl.content.firstElementChild.cloneNode(true); tr.querySelector('[name=ph_name]').value = nome || ''; body.appendChild(tr); numera(); return tr; }
+  body.addEventListener('click', function (e) { if (e.target.classList.contains('ph-rm')) { e.target.closest('tr').remove(); numera(); } });
+  var add = document.getElementById('phAdd'); if (add) add.onclick = function () { linha('').querySelector('[name=ph_name]').focus(); };
+  var temDatas = function () { return [].some.call(body.querySelectorAll('input[type=date]'), function (i) { return i.value; }); };
+  function padrao() { body.innerHTML = ''; (PADRAO[document.getElementById('tipo').value] || PADRAO['Outro']).forEach(linha); }
+  var std = document.getElementById('phStd'); if (std) std.onclick = function () { if (!temDatas() || confirm('Substituir as fases atuais (com as datas já preenchidas) pelas fases padrão?')) padrao(); };
+  document.getElementById('tipo').addEventListener('change', function () { if (!temDatas()) padrao(); });
+})();
+</script>
+{% endblock %}

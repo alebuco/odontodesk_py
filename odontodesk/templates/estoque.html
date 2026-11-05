@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% block titulo %}Estoque{% endblock %}
+{% macro val(iso) %}{% set x = validade(iso) %}{% if x.txt %}{{ x.txt }} {% if x.tag %}<span class="tag {{ x.tag[0] }}">{{ x.tag[1] }}</span>{% endif %}{% else %}<span class="muted">—</span>{% endif %}{% endmacro %}
+{% block conteudo %}
+<div class="page-head"><div><h1>Estoque</h1><p class="sub">{{ total }} item(ns) · valor em estoque {{ valor|dinheiro }}</p></div>
+<div class="toolbar"><a class="btn" href="{{ url_for('estoque.historico') }}">Histórico de movimentações</a>{% if nivel('estoque') >= 2 %}<a class="btn primary" href="{{ url_for('estoque.item') }}">+ Novo item</a>{% endif %}</div></div>
+{% if baixo %}<div class="alert"><b>{{ baixo|length }} item(ns) no estoque mínimo ou abaixo:</b> {{ baixo|map(attribute='name')|join(', ') }}</div>{% endif %}
+{% if venc %}<div class="alert"><b>Validade:</b> {% for s, e in venc %}{{ s.name }} ({{ 'vencido' if validade(e).tag and validade(e).tag[1] == 'Vencido' else 'vence ' ~ (e|data) }}){{ ', ' if not loop.last }}{% endfor %}</div>{% endif %}
+<form class="toolbar" method="get"><input name="q" placeholder="Buscar por nome ou código de barras" value="{{ q }}" style="width:300px" autofocus><button class="btn">Buscar</button></form>
+<div class="card" style="padding:4px 8px">{% if itens %}<table><thead><tr><th>Item</th><th class="num">Quantidade</th><th class="num">Mínimo</th><th class="num">Custo unit.</th><th>Próx. validade</th><th>Situação</th><th></th></tr></thead><tbody>
+{% for s, e in itens %}<tr><td><a href="{{ url_for('estoque.item', id=s.id) }}"><b>{{ s.name }}</b></a>{% if s.barcode %}<div class="muted mono-sm">{{ s.barcode }}</div>{% endif %}</td>
+<td class="num">{{ s.qty|qtd }} {{ s.unit }}</td><td class="num">{{ s.min|qtd }}</td><td class="num">{{ s.cost|dinheiro }}</td><td>{{ val(e) }}</td>
+<td>{% if s.qty|float <= s.min|float %}<span class="tag bad">Repor</span>{% else %}<span class="tag ok">OK</span>{% endif %}</td>
+<td class="right nowrap">{% if nivel('estoque') >= 2 %}<a class="btn sm" href="{{ url_for('estoque.movimento', id=s.id, kind='entrada') }}">Entrada</a> <a class="btn sm" href="{{ url_for('estoque.movimento', id=s.id, kind='saida') }}">Saída</a>{% endif %}</td></tr>{% endfor %}
+</tbody></table>{% else %}<div class="empty">{{ 'Nenhum item encontrado.' if total else 'Nenhum item cadastrado.' }}</div>{% endif %}</div>
+<p class="muted small">A leitura de código de barras pelo celular continua no app do computador nesta etapa; aqui, um leitor USB funciona na busca.</p>
+{% endblock %}

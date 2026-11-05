@@ -1,0 +1,18 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input %}{% block titulo %}Item de estoque{% endblock %}
+{% block conteudo %}
+<h1>{{ 'Novo item de estoque' if novo else s.name }}</h1>
+{% if erro %}<div class="flash erro">{{ erro }}</div>{% endif %}
+<div class="card"><form method="post" class="form" id="fi">{{ csrf_input() }}{% if not novo %}<input type="hidden" name="_v" value="{{ s._v }}">{% endif %}
+<fieldset {{ 'disabled' if nivel('estoque') < 2 }} style="border:0;padding:0;margin:0;display:contents">
+  <label class="full">Nome<input name="name" value="{{ s.name }}"></label><label>Unidade<input name="unit" value="{{ s.unit or 'unidade' }}"></label>
+  <label>Código de barras<input name="barcode" value="{{ s.barcode }}" placeholder="EAN / GTIN (opcional)" autocomplete="off"></label>
+  <label>Custo unitário (R$)<input name="cost" value="{{ s.cost|numero_campo }}" inputmode="decimal"></label>
+  {% if novo %}<label>Quantidade inicial<input name="qty" value="{{ s.qty or 0 }}" inputmode="decimal"></label><label>Validade<input type="date" name="expiry" value="{{ s.expiry }}"></label>{% endif %}
+  <label>Estoque mínimo (alerta)<input name="min" value="{{ s.min|qtd if s.min is not none else 0 }}" inputmode="decimal"></label>
+</fieldset></form>
+{% if lotes %}<h3 style="margin:14px 0 6px">Em estoque por validade</h3><table class="lots"><thead><tr><th>Validade</th><th>Lote</th><th class="num">Qtd.</th><th></th></tr></thead><tbody>
+{% for l in lotes %}{% set x = validade(l.expiry) %}<tr><td>{% if l.expiry %}{{ x.txt }} {% if x.tag %}<span class="tag {{ x.tag[0] }}">{{ x.tag[1] }}</span>{% endif %}{% else %}<span class="muted">sem validade</span>{% endif %}</td><td>{{ l.lot }}</td><td class="num">{{ l.qty|qtd }} {{ s.unit }}</td>
+<td class="right">{% if l.moveId and nivel('estoque') >= 2 %}<a class="btn sm" href="{{ url_for('estoque.corrigir', mid=l.moveId) }}">Corrigir entrada</a>{% endif %}</td></tr>{% endfor %}</tbody></table>{% endif %}
+<div class="actions">{% if not novo and nivel('estoque') >= 2 %}<form method="post" action="{{ url_for('estoque.excluir', id=s.id) }}" onsubmit="return confirm('Excluir item do estoque?')">{{ csrf_input() }}<button class="btn danger">Excluir</button></form><span style="flex:1"></span>{% endif %}
+<a class="btn" href="{{ url_for('estoque.lista') }}">Cancelar</a>{% if nivel('estoque') >= 2 %}<button class="btn primary" form="fi">Salvar</button>{% endif %}</div></div>
+{% endblock %}

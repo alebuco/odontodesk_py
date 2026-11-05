@@ -12,7 +12,7 @@ SESSAO_HORAS = 12
 
 def _abrir_sessao(u):
     session.clear()
-    session.update(u=u["id"], h=str(u.get("hash"))[:12], exp=time.time() + SESSAO_HORAS * 3600)
+    session.update(u=u["id"], h=str(u.get("hash"))[:12], exp=time.time() + SESSAO_HORAS * 3600, t=time.time())
     session.permanent = False
 
 
@@ -40,7 +40,7 @@ def entrar():
                 web.login_ok(login)
                 _abrir_sessao(u)
                 try:
-                    u["lastLogin"] = tempo.agora_texto()[:16]
+                    u["lastLogin"] = tempo.agora_iso_utc()   # mesmo formato do app do computador
                     st.salvar("users", u)
                 except Exception:
                     pass

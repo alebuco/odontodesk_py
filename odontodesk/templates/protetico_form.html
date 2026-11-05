@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input %}{% block titulo %}Protético{% endblock %}
+{% block conteudo %}
+<h1>{{ 'Novo protético' if novo else 'Protético' }}</h1>
+{% if erro %}<div class="flash erro">{{ erro }}</div>{% endif %}
+<div class="card"><form method="post" class="form" id="fx">{{ csrf_input() }}{% if not novo %}<input type="hidden" name="_v" value="{{ x._v }}">{% endif %}<input type="hidden" name="voltar" value="{{ request.args.get('voltar', '') }}">
+<fieldset {{ 'disabled' if nivel('proteses') < 2 }} style="border:0;padding:0;margin:0;display:contents">
+  <label>Nome<input name="name" value="{{ x.name }}"></label><label>Laboratório<input name="lab" value="{{ x.lab }}"></label>
+  <label>Telefone / WhatsApp<input name="phone" value="{{ x.phone }}" inputmode="tel" placeholder="(DD) 9NNNN-NNNN"></label><label>E-mail<input name="email" type="email" value="{{ x.email }}"></label>
+  <label>Prazo padrão de retorno (dias)<input type="number" name="days" min="1" max="90" value="{{ x.days or 7 }}"></label><span></span>
+  <label class="full">Observações<textarea name="notes" rows="2" placeholder="Endereço, horário de coleta, dados para pagamento (Pix)…">{{ x.notes }}</textarea></label>
+</fieldset></form>
+<div class="actions">{% if not novo and nivel('proteses') >= 2 %}<button class="btn danger" form="fx" name="excluir" value="1" onclick="return confirm('Excluir este protético?')">Excluir</button><span style="flex:1"></span>{% endif %}
+<a class="btn" href="{{ url_for('proteses.proteticos') }}">Voltar</a>{% if nivel('proteses') >= 2 %}<button class="btn primary" form="fx">Salvar</button>{% endif %}</div></div>
+{% endblock %}

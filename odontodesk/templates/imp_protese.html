@@ -1,0 +1,13 @@
+{% extends "_impressao.html" %}{% block titulo %}Ordem de serviço — prótese{% endblock %}
+{% block corpo %}<h2 style="margin:0 0 4px">Ordem de serviço — laboratório de prótese</h2>
+<table><tbody>
+<tr><td style="width:24%"><b>Protético / laboratório</b></td><td>{{ pros.name }}{{ ' — ' ~ pros.lab if pros.lab }}{{ ' · ' ~ pros.phone if pros.phone }}</td></tr>
+<tr><td><b>Paciente</b></td><td>{{ nome_exibicao(pac) }}</td></tr>
+<tr><td><b>Dentista</b></td><td>{{ den.name }}{{ ' — ' ~ den.cro if den.cro }}</td></tr>
+<tr><td><b>Trabalho</b></td><td>{{ w.type }}</td></tr><tr><td><b>Dentes / região</b></td><td>{{ w.teeth }}</td></tr><tr><td><b>Cor</b></td><td>{{ w.shade }}</td></tr>
+{% if s.phase %}<tr><td><b>Fase atual</b></td><td>{{ s.phase.name }}{{ ' · retorno previsto ' ~ (s.phase.due|data) if s.phase.due }}</td></tr>{% endif %}
+</tbody></table>
+<h3>Fases</h3><table><thead><tr><th>#</th><th>Fase</th><th>Envio</th><th>Previsão</th><th>Recebimento</th><th>Observação</th></tr></thead><tbody>
+{% for x in w.phases or [] %}<tr><td>{{ loop.index }}</td><td>{{ x.name }}</td><td>{{ x.sent|data }}</td><td>{{ x.due|data }}</td><td>{{ x.received|data }}</td><td>{{ x.note }}</td></tr>{% endfor %}</tbody></table>
+{% if w.notes %}<h3>Observações</h3><pre style="white-space:pre-wrap;font-family:inherit">{{ w.notes }}</pre>{% endif %}
+<div style="display:flex;gap:40px;margin-top:60px"><div style="flex:1;border-top:1px solid #333;text-align:center;padding-top:4px">Clínica</div><div style="flex:1;border-top:1px solid #333;text-align:center;padding-top:4px">Laboratório (recebido em ___/___/______)</div></div>{% endblock %}

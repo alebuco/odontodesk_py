@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input %}{% block titulo %}Prótese{% endblock %}
+{% block conteudo %}
+<div class="card login-card" style="max-width:620px;margin-left:0"><h2>{{ 'Enviar ao laboratório' if tipo == 'send' else 'Receber do laboratório' }} — {{ pac }}</h2>
+<p class="muted">{{ w.type }}{% if w.teeth %} · dentes {{ w.teeth }}{% endif %} · {{ pros.name or '—' }}</p>
+{% if erro %}<div class="flash erro">{{ erro }}</div>{% endif %}
+<form method="post" class="form">{{ csrf_input() }}<input type="hidden" name="_v" value="{{ w._v }}">
+  <label class="full">Fase<input value="{{ p.name }}" disabled></label>
+  {% if tipo == 'send' %}<label>Data de envio<input type="date" name="sent" value="{{ hoje }}"></label><label>Previsão de retorno<input type="date" name="due" value="{{ prev_padrao }}"></label>
+  {% else %}<label>Data de recebimento<input type="date" name="received" value="{{ hoje }}"></label><label>Enviado em<input value="{{ p.sent|data }}" disabled></label>{% endif %}
+  <label class="full">Observação da fase<input name="note" value="{{ p.note }}" placeholder="{{ 'O que foi enviado (moldes, modelos, registro, cor)…' if tipo == 'send' else 'Ajustes necessários, conferência…' }}"></label>
+  <div class="actions full">{% if tipo == 'send' and pros.phone %}<button class="btn" name="whatsapp" value="1">Registrar e avisar o protético (WhatsApp)</button><span style="flex:1"></span>{% endif %}
+  <a class="btn" href="{{ url_for('proteses.lista') }}">Cancelar</a><button class="btn primary">{{ 'Registrar envio' if tipo == 'send' else 'Registrar recebimento' }}</button></div>
+</form></div>
+{% endblock %}

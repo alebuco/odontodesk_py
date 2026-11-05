@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input %}{% block titulo %}Modelo{% endblock %}
+{% block conteudo %}
+<h1>{{ 'Novo modelo' if novo else 'Modelo de documento' }}</h1>
+{% if erro %}<div class="flash erro">{{ erro }}</div>{% endif %}
+<div class="card"><form method="post" class="form" id="fm">{{ csrf_input() }}{% if not novo %}<input type="hidden" name="_v" value="{{ t._v }}">{% endif %}
+<fieldset {{ 'disabled' if nivel('documentos') < 2 }} style="border:0;padding:0;margin:0;display:contents">
+  <label class="full">Título<input name="title" value="{{ t.title }}"></label>
+  <label class="full">Texto<textarea name="body" style="min-height:360px;font-family:Georgia,serif">{{ t.body }}</textarea></label>
+  <p class="muted small full">Variáveis: <code>{{ variaveis }}</code></p>
+</fieldset></form>
+<div class="actions">
+  {% if not novo and nivel('documentos') >= 2 %}<form method="post" action="{{ url_for('cadastros.modelo_excluir', id=t.id) }}" onsubmit="return confirm('Excluir modelo?')">{{ csrf_input() }}<button class="btn danger">Excluir</button></form><span style="flex:1"></span>{% endif %}
+  <a class="btn" href="{{ url_for('cadastros.modelos') }}">Cancelar</a>{% if nivel('documentos') >= 2 %}<button class="btn primary" form="fm">Salvar</button>{% endif %}
+</div></div>
+{% endblock %}

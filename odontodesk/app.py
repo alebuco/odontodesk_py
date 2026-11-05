@@ -14,8 +14,8 @@ from . import tempo, web
 from .dados.drivers import criar_driver
 from .dados.store import Store
 
-VERSAO = "0.2.0"
-ETAPA = "Etapas 1 e 2: login, painel, pacientes, agenda, financeiro e prontuário"
+VERSAO = "0.3.0"
+ETAPA = "Etapas 1 a 3: atendimento, prontuário, financeiro, procedimentos, próteses, estoque, modelos, configurações e usuários"
 
 
 def carregar_config(caminho=None):
@@ -43,8 +43,8 @@ def create_app(config=None, store=None):
     app.config["VERSAO"] = VERSAO
     web.registrar_filtros(app)
 
-    from .rotas import agenda, auth, financeiro, pacientes, painel, prontuario
-    for bp in (auth.bp, painel.bp, pacientes.bp, agenda.bp, financeiro.bp, prontuario.bp):
+    from .rotas import agenda, auth, cadastros, estoque, financeiro, pacientes, painel, prontuario, proteses, usuarios
+    for bp in (auth.bp, painel.bp, pacientes.bp, agenda.bp, financeiro.bp, prontuario.bp, cadastros.bp, proteses.bp, estoque.bp, usuarios.bp):
         app.register_blueprint(bp)
 
     @app.before_request

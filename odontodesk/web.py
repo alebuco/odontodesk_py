@@ -74,6 +74,17 @@ def carregar_usuario():
     if not u or not u.get("active") or str(u.get("hash"))[:12] != session.get("h") or session.get("exp", 0) < time.time():
         session.clear()
         return
+    # encerra a sessão parada há mais tempo que o "bloqueio por inatividade" (Usuários e acessos → Segurança)
+    try:
+        minutos = int(g.clinica.get("lockMinutes") if g.clinica.get("lockMinutes") is not None else 20)
+    except (TypeError, ValueError):
+        minutos = 20
+    if minutos and time.time() - session.get("t", time.time()) > minutos * 60:
+        session.clear()
+        flash(f"Sessão encerrada depois de {minutos} minutos sem uso. Entre de novo.", "aviso")
+        return
+    if not request.path.startswith("/static/"):
+        session["t"] = time.time()
     g.usuario = u
 
 

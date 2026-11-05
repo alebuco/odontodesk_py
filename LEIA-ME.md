@@ -9,7 +9,7 @@ Ele usa o **mesmo banco de dados** (TiDB/MySQL) do OdontoDesk em JavaScript:
 
 Por isso os dois podem ser usados **ao mesmo tempo** durante a transição. O que é gravado aqui aparece no app do computador em poucos segundos, e vice-versa. Se os dois alterarem o mesmo registro ao mesmo tempo, ninguém sobrescreve ninguém: quem gravou por último é avisado e vê os dados atuais.
 
-## O que já funciona (etapas 1 e 2, versão 0.2.0)
+## O que já funciona (etapas 1 a 3, versão 0.3.0)
 
 | Área | O que tem |
 |---|---|
@@ -19,6 +19,12 @@ Por isso os dois podem ser usados **ao mesmo tempo** durante a transição. O qu
 | **Agenda** | Visão do dia, com os horários da clínica, e da semana. Filtro por dentista. Marcar, alterar, mudar a situação e excluir consultas. Aviso de choque de horário do mesmo dentista. Bloqueio de horário. |
 | **Financeiro** | Fluxo de caixa do mês: recebido, pago, saldo realizado e projetado. Filtros. Lançamentos, inclusive repetidos mês a mês. Baixa. Recibo para imprimir. Exportação em CSV. Comissões e despesas por categoria. **Fechamento do período contábil**, só para o administrador: é o mesmo fechamento do app atual, e o que é fechado num app vale no outro. |
 | **Prontuário** (etapa 2) | **Anamnese** com as mesmas perguntas do app (motivo da consulta, sim/não com observação, texto), com impressão. **Evolução clínica**: vinculada à consulta da agenda (que passa a "atendido"), busca e filtro por dentista, correção pelo autor em até 24 h (a versão anterior fica guardada e pode ser vista), depois disso só **adendos**, impressão. **Odontograma e planos de tratamento**: dentição permanente, decídua ou mista; clicar no dente e nas faces; procedimentos com código TUSS; situação planejado/realizado; valores e desconto; orçamento para imprimir ou enviar pelo WhatsApp; **aprovar e gerar cobrança** (entrada + parcelas no financeiro); concluir o plano. **Histórico** do paciente (consultas, procedimentos realizados, evoluções, receitas, documentos, pré-consulta). |
+| **Procedimentos** (etapa 3) | Tabela por categoria, busca por nome, código ou categoria, filtro por fonte (TUSS, SUS, outros, sem código) e "só sem valor". Cadastro com validação do código (TUSS de 8 dígitos; SUS/SIGTAP de 10, formatado como 03.07.01.003-1) e aviso de código repetido. Reajuste de todos os valores em %. |
+| **Próteses** (etapa 3) | Trabalhos com fases (envio, previsão, recebimento), já com as fases padrão de cada tipo. Situação: no laboratório, atrasado, na clínica, concluído. Atalhos "Enviar" e "Receber", com aviso ao protético pelo WhatsApp. Ordem de serviço para imprimir. Valor e pagamento ao protético, que pode virar conta a pagar no financeiro (respeita o período contábil fechado). Cadastro de protéticos. |
+| **Estoque** (etapa 3) | Itens com código de barras, custo e estoque mínimo. Entradas com validade e lote, que podem virar despesa no financeiro. Saídas que não deixam o saldo negativo. Lotes por validade (sai primeiro o que vence antes). Alertas de reposição e de validade. Histórico com correção e exclusão de lançamentos (o saldo é ajustado). |
+| **Modelos de documentos** (etapa 3) | Criar, editar e excluir os modelos (atestado, receituário, contrato, termo), com as mesmas variáveis do app. |
+| **Configurações** (etapa 3) | Dados da clínica, com CPF/CNPJ validado (inclusive o CNPJ com letras), horário e intervalo da agenda e mensagens. Pré-consulta (WhatsApp da clínica e endereço do formulário). Dentistas e comissões. Perguntas da anamnese. Exportação de backup (.json). |
+| **Usuários e acessos** (etapa 3, só o administrador) | Novo usuário com senha provisória (troca obrigatória no primeiro acesso, aqui ou no app do computador). Editar, desativar, excluir e redefinir senha. Tabela de permissões por tipo de acesso. Novos tipos de acesso. Encerramento da sessão por inatividade. Novo código de recuperação. Proteções: sempre fica um administrador ativo, e ninguém tira o próprio acesso de administrador. |
 | **Segurança** | Proteção dos formulários (CSRF). Sessão com prazo de 12 horas. Cabeçalhos de segurança. Todas as gravações ficam no histórico (auditoria), com o computador "WEB-PYTHON". |
 
 As outras áreas continuam no app do computador até as próximas etapas (veja o fim deste arquivo).
@@ -82,7 +88,8 @@ odontodesk-py/
 │   │   ├── esquema.py       tabelas e colunas (iguais às do app em JavaScript)
 │   │   ├── drivers.py       conexão MySQL/TiDB e SQLite
 │   │   └── store.py         ler, gravar (com versão), excluir, histórico
-│   ├── rotas/               uma página por área: auth, painel, pacientes, agenda, financeiro, prontuario
+│   ├── rotas/               uma página por área: auth, painel, pacientes, agenda, financeiro, prontuario,
+│   │                        cadastros (procedimentos, modelos, configurações), proteses, estoque, usuarios
 │   ├── templates/           o HTML de cada página (Jinja2)
 │   └── static/              estilo.css (o visual do app atual) e odonto.js (cliques no odontograma)
 ├── nuvem/instalar.sh        instalação na máquina virtual
@@ -105,16 +112,15 @@ Receitas para mudanças comuns:
 python -m unittest discover -s testes -v
 ```
 
-São 30 testes:
+São 39 testes:
 - dados, validações e senhas;
-- páginas: login, permissões, pacientes, agenda, financeiro, fechamento de período e prontuário (anamnese, regras da evolução, odontograma, orçamento e parcelas);
+- páginas: login, permissões, pacientes, agenda, financeiro, fechamento de período e prontuário (anamnese, regras da evolução, odontograma, orçamento e parcelas), procedimentos, modelos, configurações, próteses, estoque (lotes e saldo) e usuários e perfis;
 - **convivência com o app em JavaScript**: o Python e o `server/store.js` original gravam e leem o mesmo banco, inclusive com conflitos. Esses testes precisam do Node.js e da pasta `odontodesk` ao lado; sem eles, são pulados.
 
 ## Próximas etapas
 
 | Etapa | Conteúdo |
 |---|---|
-| 3 | Procedimentos e preços, Próteses, Estoque (lotes, validades, código de barras), Modelos de documentos, Configurações, Usuários e perfis |
 | 4 | Receitas e documentos (impressão e assinatura digital ICP-Brasil A1), galeria e escaneamentos 3D (anexos), pré-consulta, importação do BlueDental, juntar e limpar dados |
 | 5 | Agenda Google, backups, mensagens de WhatsApp |
 

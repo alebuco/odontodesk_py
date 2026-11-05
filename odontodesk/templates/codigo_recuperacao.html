@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block titulo %}Código de recuperação{% endblock %}
+{% block conteudo %}
+<div class="card login-card" style="margin-left:0"><h2>Novo código de recuperação</h2>
+<p>Guarde em local seguro. Ele aparece só agora.</p><div class="recovery-code">{{ codigo }}</div>
+<div class="actions"><button class="btn" onclick="window.print()">Imprimir</button><a class="btn primary" href="{{ url_for('usuarios.lista') }}">Já guardei</a></div></div>
+{% endblock %}

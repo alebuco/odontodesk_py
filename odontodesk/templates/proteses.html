@@ -1,0 +1,33 @@
+{% extends "base.html" %}{% block titulo %}Próteses{% endblock %}
+{% block conteudo %}
+<div class="page-head"><div><h1>Trabalhos protéticos</h1><p class="sub">Controle das próteses enviadas ao laboratório: fases, prazos, protético e pagamento.</p></div>
+<div class="toolbar"><a class="btn" href="{{ url_for('proteses.proteticos') }}">Protéticos</a>{% if nivel('proteses') >= 2 %}<a class="btn primary" href="{{ url_for('proteses.trabalho') }}">+ Novo trabalho</a>{% endif %}</div></div>
+<div class="grid g4">
+  <a class="card stat" href="?filtro=lab" style="text-decoration:none;color:inherit"><div class="label">No laboratório</div><div class="value">{{ n_lab }}</div></a>
+  <a class="card stat" href="?filtro=atrasados" style="text-decoration:none;color:inherit"><div class="label">Atrasados</div><div class="value" style="color:{{ 'var(--danger)' if n_atraso else 'inherit' }}">{{ n_atraso }}</div></a>
+  <a class="card stat" href="?filtro=clinica" style="text-decoration:none;color:inherit"><div class="label">Na clínica (próxima fase)</div><div class="value">{{ n_clinica }}</div></a>
+  <a class="card stat" href="?filtro=todos&pagamento=apagar" style="text-decoration:none;color:inherit"><div class="label">A pagar aos protéticos</div><div class="value">{{ a_pagar|dinheiro }}</div></a>
+</div>
+<form class="toolbar" method="get">
+  <input name="q" placeholder="Buscar paciente, tipo, protético" value="{{ q }}" style="width:220px">
+  <select name="filtro" onchange="this.form.submit()">{% for k, t in filtros %}<option value="{{ k }}" {{ 'selected' if k == f }}>{{ t }}</option>{% endfor %}</select>
+  <select name="protetico" onchange="this.form.submit()"><option value="">Todos os protéticos</option>{% for x in proteticos %}<option value="{{ x.id }}" {{ 'selected' if x.id == fp }}>{{ x.name }}{{ ' — ' ~ x.lab if x.lab }}</option>{% endfor %}</select>
+  <select name="pagamento" onchange="this.form.submit()">{% for k, t in [('', 'Pagamento: todos'), ('apagar', 'A pagar'), ('pago', 'Pagos')] %}<option value="{{ k }}" {{ 'selected' if k == fpay }}>{{ t }}</option>{% endfor %}</select>
+  <button class="btn">Buscar</button>
+</form>
+<div class="card" style="padding:4px 8px">
+{% if not total %}<div class="empty">Nenhum trabalho cadastrado. Cadastre antes o protético em <b>Protéticos</b> e depois clique em <b>+ Novo trabalho</b>.</div>
+{% elif linhas %}<table class="lab-table"><thead><tr><th>Paciente</th><th>Trabalho</th><th>Protético</th><th>Fase atual</th><th>Situação</th><th class="num">Valor</th><th>Pagamento</th><th></th></tr></thead><tbody>
+{% for l in linhas %}{% set w, s = l.w, l.s %}<tr>
+<td><a href="{{ url_for('proteses.trabalho', id=w.id) }}"><b>{{ l.pac }}</b></a></td>
+<td>{{ w.type }}{% if w.teeth or w.shade %}<div class="muted">{% if w.teeth %}dentes {{ w.teeth }}{% endif %}{% if w.shade %}{{ ' · ' if w.teeth }}cor {{ w.shade }}{% endif %}</div>{% endif %}</td>
+<td>{{ l.pros.name or '—' }}{% if l.pros.lab %}<div class="muted">{{ l.pros.lab }}</div>{% endif %}</td>
+<td>{% if s.key == 'lab' %}<b>{{ s.phase.name }}</b> <span class="muted">({{ s.idx + 1 }}/{{ l.n }})</span><div class="muted">enviado {{ s.phase.sent|data }}{% if s.phase.due %} · previsão {{ s.phase.due|data }}{% endif %}</div>
+{% elif s.key == 'clinic' %}<b>{{ s.phase.name }}</b> <span class="muted">({{ s.idx + 1 }}/{{ l.n }})</span><div class="muted">{{ s.prev.name }} recebido {{ s.prev.received|data }}</div>
+{% elif s.key == 'tosend' %}{% if s.phase %}<b>{{ s.phase.name }}</b> <span class="muted">(1/{{ l.n }})</span>{% else %}<span class="muted">sem fases</span>{% endif %}{% endif %}</td>
+<td><span class="tag {{ {'lab': 'bad' if s.late else 'info', 'clinic': 'warn', 'done': 'ok'}.get(s.key, '') }}">{{ s.label }}</span></td>
+<td class="num">{{ w.value|dinheiro if w.value else '—' }}</td>
+<td>{% if w.value %}{% if l.pago %}<span class="tag ok">Pago</span>{% if l.data_pago %}<div class="muted">{{ l.data_pago|data }}</div>{% endif %}{% else %}<span class="tag warn">A pagar</span>{% endif %}{% endif %}</td>
+<td class="right nowrap">{% if nivel('proteses') >= 2 and s.phase %}<a class="btn sm" href="{{ url_for('proteses.movimento', id=w.id) }}">{{ 'Receber' if s.key == 'lab' else 'Enviar' }}</a>{% endif %}</td></tr>{% endfor %}
+</tbody></table>{% else %}<div class="empty">Nenhum trabalho encontrado.</div>{% endif %}</div>
+{% endblock %}

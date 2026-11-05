@@ -1,0 +1,54 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input, erro %}{% block titulo %}Configurações{% endblock %}
+{% block conteudo %}
+{% set ed = nivel('config') >= 2 %}
+<h1>Configurações</h1><p class="sub">Dados da clínica, pré-consulta, dentistas, anamnese e backup.</p>
+<div class="card"><h2>Clínica</h2>
+<form method="post" action="{{ url_for('cadastros.config_clinica') }}" class="form">{{ csrf_input() }}<input type="hidden" name="_v" value="{{ c._v }}">
+<fieldset {{ 'disabled' if not ed }} style="border:0;padding:0;margin:0;display:contents">
+  <label class="full">Nome da clínica<input name="name" value="{{ c.name }}" class="{{ 'invalid' if erros.name }}">{{ erro(erros,'name') }}</label>
+  <label>CNPJ / CPF<input name="cnpj" value="{{ c.cnpj }}" maxlength="18" autocomplete="off" placeholder="00.000.000/0000-00 ou 000.000.000-00" style="text-transform:uppercase" class="{{ 'invalid' if erros.cnpj }}">{{ erro(erros,'cnpj') }}</label>
+  <label>Telefone<input name="phone" value="{{ c.phone }}" inputmode="tel" maxlength="15" placeholder="(DD) NNNN-NNNN" class="{{ 'invalid' if erros.phone }}">{{ erro(erros,'phone') }}</label>
+  <label>E-mail<input name="email" value="{{ c.email }}"></label><label>Cidade / UF<input name="city" value="{{ c.city }}"></label>
+  <label class="full">Endereço completo (rua, número, bairro, CEP)<input name="address" value="{{ c.address }}" placeholder="Usado no cabeçalho das receitas e documentos"></label>
+  <label>Início do atendimento<input type="time" name="start" value="{{ c.start or '08:00' }}"></label><label>Fim do atendimento<input type="time" name="end" value="{{ c.end or '18:00' }}" class="{{ 'invalid' if erros.end }}">{{ erro(erros,'end') }}</label>
+  <label>Intervalo da agenda (min)<select name="slot">{% for s in slots %}<option {{ 'selected' if s == (c.slot|string) }}>{{ s }}</option>{% endfor %}</select></label><span></span>
+  <label class="full">Mensagem de confirmação de consulta (WhatsApp)<textarea name="waConfirm">{{ c.waConfirm }}</textarea></label>
+  <label class="full">Mensagem de aniversário<textarea name="waBirthday">{{ c.waBirthday }}</textarea></label>
+  <label class="full">Mensagem de retorno<textarea name="waReturn">{{ c.waReturn }}</textarea></label>
+  <span class="full muted">Variáveis: {{ '{{paciente}} {{clinica}} {{data}} {{hora}} {{dentista}}' }}. O logo da clínica é escolhido no app do computador.</span>
+</fieldset>
+{% if ed %}<div class="actions full"><button class="btn primary">Salvar dados da clínica</button></div>{% endif %}</form></div>
+
+<div class="card" id="prec"><h2>Pré-consulta</h2>
+<form method="post" action="{{ url_for('cadastros.config_pre') }}" class="form">{{ csrf_input() }}<input type="hidden" name="_v" value="{{ c._v }}">
+<fieldset {{ 'disabled' if not ed }} style="border:0;padding:0;margin:0;display:contents">
+  <label>WhatsApp da clínica (recebe as respostas)<input name="whatsapp" value="{{ c.whatsapp }}" inputmode="tel" maxlength="15" placeholder="(DD) 9NNNN-NNNN"></label>
+  <label>Ao agendar a primeira consulta<select name="preMode">{% for k, t in [('perguntar','Perguntar se deve enviar'),('whatsapp','Abrir o WhatsApp direto para enviar'),('desligado','Não enviar')] %}<option value="{{ k }}" {{ 'selected' if k == (c.preMode or 'perguntar') }}>{{ t }}</option>{% endfor %}</select></label>
+  <label class="full">Endereço do formulário na internet<input name="formUrl" value="{{ c.formUrl }}" placeholder="https://alebuco.github.io/pre-consulta/"></label>
+  <label class="full">Mensagem enviada ao paciente<textarea name="waPreConsulta">{{ c.waPreConsulta }}</textarea></label>
+</fieldset>
+{% if ed %}<div class="actions full"><button class="btn primary">Salvar</button></div>{% endif %}</form></div>
+
+<div class="card" id="dentistas"><h2>Dentistas</h2>
+{% for d in dentistas %}<form id="d_{{ d.id }}" method="post" action="{{ url_for('cadastros.config_dentista', id=d.id) }}">{{ csrf_input() }}</form>{% endfor %}
+<form id="d_novo" method="post" action="{{ url_for('cadastros.config_dentista') }}">{{ csrf_input() }}</form>
+<table><thead><tr><th>Nome</th><th>CRO</th><th class="num">Comissão (%)</th><th></th></tr></thead><tbody>
+{% for d in dentistas %}<tr>
+<td><input form="d_{{ d.id }}" name="name" value="{{ d.name }}" {{ 'disabled' if not ed }}></td><td><input form="d_{{ d.id }}" name="cro" value="{{ d.cro }}" {{ 'disabled' if not ed }}></td>
+<td class="num"><input form="d_{{ d.id }}" name="commission" value="{{ d.commission }}" style="width:80px;text-align:right" {{ 'disabled' if not ed }}></td>
+<td class="right nowrap">{% if ed %}<button class="btn sm" form="d_{{ d.id }}">Salvar</button> <button class="btn sm danger" form="d_{{ d.id }}" name="excluir" value="1" onclick="return confirm('Excluir dentista? Agendamentos existentes ficarão sem dentista.')">Excluir</button>{% endif %}</td></tr>{% endfor %}
+{% if ed %}<tr><td><input form="d_novo" name="name" placeholder="Novo dentista"></td><td><input form="d_novo" name="cro" placeholder="CRO-RJ 00000"></td>
+<td class="num"><input form="d_novo" name="commission" value="0" style="width:80px;text-align:right"></td><td class="right"><button class="btn sm primary" form="d_novo">Adicionar</button></td></tr>{% endif %}
+</tbody></table></div>
+
+<div class="card" id="anamnese"><h2>Modelo de anamnese</h2>
+<ul class="list-plain">{% for m in perguntas %}<li><span>{{ m.q }} <span class="muted">({{ 'sim/não' if m.type == 'yesno' else 'texto' }})</span></span>
+{% if ed %}<form method="post" action="{{ url_for('cadastros.config_anamnese') }}" onsubmit="return confirm('Remover esta pergunta?')">{{ csrf_input() }}<button class="btn sm danger" name="remover" value="{{ m.id }}">Remover</button></form>{% endif %}</li>{% endfor %}</ul>
+{% if ed %}<form method="post" action="{{ url_for('cadastros.config_anamnese') }}" class="toolbar" style="margin-top:12px">{{ csrf_input() }}<input name="q" placeholder="Nova pergunta" style="flex:1;width:auto"><select name="type"><option value="yesno">Sim/Não</option><option value="text">Texto</option></select><button class="btn">Adicionar</button></form>{% endif %}</div>
+
+<div class="card"><h2>Banco de dados e backup</h2>
+<p>{{ banco }}</p>
+<p class="muted small">O mesmo banco do OdontoDesk do computador: as alterações aparecem nos dois em poucos segundos.</p>
+{% if ed %}<div class="actions" style="justify-content:flex-start"><a class="btn" href="{{ url_for('cadastros.config_backup') }}">Exportar dados (.json)</a></div>
+<p class="muted small">Restaurar backup, conexão com outro banco, Agenda Google, certificados e importações continuam no app do computador.</p>{% endif %}</div>
+{% endblock %}

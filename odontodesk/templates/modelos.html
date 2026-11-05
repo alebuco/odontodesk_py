@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block titulo %}Modelos de documentos{% endblock %}
+{% block conteudo %}
+<div class="page-head"><div><h1>Modelos de documentos</h1><p class="sub">Atestados, receituários, contratos e termos.</p></div>
+{% if nivel('documentos') >= 2 %}<a class="btn primary" href="{{ url_for('cadastros.modelo') }}">+ Novo modelo</a>{% endif %}</div>
+<p class="muted small">Variáveis disponíveis: <code>{{ variaveis }}</code></p>
+<div class="card" style="padding:4px 8px">{% if modelos %}<table><tbody>{% for t in modelos %}<tr class="click" onclick="location.href='{{ url_for('cadastros.modelo', id=t.id) }}'"><td><a href="{{ url_for('cadastros.modelo', id=t.id) }}"><b>{{ t.title }}</b></a></td><td class="muted">{{ (t.body or '')[:90] }}…</td></tr>{% endfor %}</tbody></table>
+{% else %}<div class="empty">Nenhum modelo.</div>{% endif %}</div>
+<p class="muted">Gerar documentos para o paciente continua no app do computador nesta etapa (ficha do paciente → aba Documentos).</p>
+{% endblock %}

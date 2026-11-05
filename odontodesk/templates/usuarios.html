@@ -1,0 +1,34 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input %}{% block titulo %}Usuários e acessos{% endblock %}
+{% block conteudo %}
+<h1>Usuários e acessos</h1><p class="sub">Cadastre quem usa o sistema, defina o tipo de acesso de cada um e redefina senhas.</p>
+<div class="card"><div class="page-head"><h2 style="margin:0">Usuários</h2><a class="btn primary" href="{{ url_for('usuarios.usuario') }}">+ Novo usuário</a></div>
+<table><thead><tr><th>Nome</th><th>Usuário</th><th>Tipo de acesso</th><th>Situação</th><th>Último acesso</th><th></th></tr></thead><tbody>
+{% for u in users %}{% set p = (perfis|selectattr('id', 'equalto', u.profileId)|list)[0] if perfis|selectattr('id', 'equalto', u.profileId)|list else none %}
+<tr class="{{ '' if u.active else 'inactive' }}"><td><a href="{{ url_for('usuarios.usuario', id=u.id) }}"><b>{{ u.name }}</b></a>{% if u.id == usuario.id %} <span class="tag info">você</span>{% endif %}{% if u.dentistId and dent.get(u.dentistId) %}<div class="muted">{{ dent[u.dentistId].name }}</div>{% endif %}</td>
+<td>{{ u.login }}</td><td>{{ p.name if p else '(perfil removido)' }}</td>
+<td>{% if not u.active %}<span class="tag">Desativado</span>{% elif u.mustChange %}<span class="tag warn">Senha provisória</span>{% else %}<span class="tag ok">Ativo</span>{% endif %}</td>
+<td class="muted">{{ (u.lastLogin|hora_local) or 'nunca' }}</td>
+<td class="right">{% if u.id != usuario.id %}<form method="post" action="{{ url_for('usuarios.redefinir', id=u.id) }}" onsubmit="return confirm('Redefinir a senha de {{ u.name }}? A senha atual deixa de funcionar.')">{{ csrf_input() }}<button class="btn sm">Redefinir senha</button></form>{% endif %}</td></tr>{% endfor %}
+</tbody></table></div>
+
+<div class="card" id="perfis"><h2>Tipos de acesso</h2>
+<p class="muted small">Para cada área: <b>Sem acesso</b> (nem aparece no menu), <b>Só consulta</b> (vê, mas não altera) ou <b>Completo</b>. O Administrador tem acesso completo e é o único que gerencia usuários.</p>
+<form method="post" action="{{ url_for('usuarios.perfis_salvar') }}">{{ csrf_input() }}
+<div class="perm-wrap"><table class="perm-table"><thead><tr><th>Área</th>{% for p in perfis %}<th>{{ p.name }}<div class="muted small">{{ por_perfil.get(p.id, 0) }} usuário(s)</div></th>{% endfor %}</tr></thead><tbody>
+{% for k, nome in modulos %}<tr><td>{{ nome }}</td>{% for p in perfis %}{% if p.fixed or p.id == 'admin' %}<td><span class="tag ok">Completo</span></td>
+{% else %}{% set atual = (p.perms or {}).get(k, 0)|int %}<td><select name="perm_{{ p.id }}_{{ k }}" class="lvl-{{ atual }}">{% for v, t in niveis %}<option value="{{ v }}" {{ 'selected' if v == atual }}>{{ t }}</option>{% endfor %}</select></td>{% endif %}{% endfor %}</tr>{% endfor %}
+</tbody></table></div><div class="actions"><button class="btn primary">Salvar permissões</button></div></form>
+<details style="margin-top:12px"><summary class="btn">+ Novo tipo de acesso</summary>
+<form method="post" action="{{ url_for('usuarios.perfil_novo') }}" class="toolbar" style="margin-top:8px">{{ csrf_input() }}<input name="name" placeholder="ex.: Financeiro, Gerente, Estagiário">
+<label class="small">começar com as permissões de <select name="copy">{% for p in perfis %}<option value="{{ p.id }}" {{ 'selected' if p.id == 'recepcao' }}>{{ p.name }}</option>{% endfor %}</select></label><button class="btn primary">Criar</button></form></details>
+{% for p in perfis if not p.fixed and p.id != 'admin' %}{% if loop.first %}<details style="margin-top:8px"><summary class="btn">Renomear ou excluir tipos de acesso</summary>{% endif %}
+<form method="post" action="{{ url_for('usuarios.perfil', pid=p.id) }}" class="toolbar" style="margin-top:8px">{{ csrf_input() }}<input name="name" value="{{ p.name }}"><button class="btn sm">Renomear</button>
+<button class="btn sm danger" name="excluir" value="1" onclick="return confirm('Excluir o tipo de acesso {{ p.name }}?')">Excluir</button></form>{% if loop.last %}</details>{% endif %}{% endfor %}
+</div>
+
+<div class="card" id="seguranca"><h2>Segurança</h2>
+<form method="post" action="{{ url_for('usuarios.seguranca_salvar') }}" class="toolbar">{{ csrf_input() }}<label>Encerrar a sessão após inatividade <select name="lock">{% for v, t in bloqueio %}<option value="{{ v }}" {{ 'selected' if v == lock }}>{{ t }}</option>{% endfor %}</select></label><button class="btn">Salvar</button></form>
+<p class="muted small">Vale para o app do computador (bloqueio da tela) e para este sistema web (sai sozinho).</p>
+<p class="muted small">Código de recuperação do administrador: permite criar nova senha se ela for esquecida (no app do computador). Gerar um novo invalida o anterior.</p>
+<form method="post" action="{{ url_for('usuarios.seguranca_salvar') }}" onsubmit="return confirm('Gerar um novo código de recuperação? O código anterior deixará de funcionar.')">{{ csrf_input() }}<button class="btn" name="codigo" value="1">Gerar novo código de recuperação</button></form></div>
+{% endblock %}

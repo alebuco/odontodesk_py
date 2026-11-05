@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input %}{% block titulo %}{{ kind|capitalize }}{% endblock %}
+{% block conteudo %}
+<div class="card login-card" style="max-width:560px;margin-left:0"><h2>{{ 'Entrada' if kind == 'entrada' else 'Saída' }} — {{ s.name }}</h2>
+<p class="muted">Saldo atual: {{ s.qty|qtd }} {{ s.unit }}</p>
+{% if erro %}<div class="flash erro">{{ erro }}</div>{% endif %}
+<form method="post" class="form">{{ csrf_input() }}<input type="hidden" name="_v" value="{{ s._v }}">
+  <label>Quantidade<input name="qty" value="{{ v.qty }}" inputmode="decimal" autofocus></label><label>Data<input type="date" name="date" value="{{ v.date }}"></label>
+  {% if kind == 'entrada' %}<label>Validade<input type="date" name="expiry" value="{{ v.expiry }}"></label><label>Lote<input name="lot" maxlength="40" value="{{ v.lot }}" autocomplete="off"></label>{% endif %}
+  <label class="full">Observação<input name="note" value="{{ v.note }}" placeholder="{{ 'Fornecedor, nota fiscal…' if kind == 'entrada' else 'Uso em procedimento, descarte…' }}"></label>
+  {% if kind == 'entrada' %}<label class="check full"><input type="checkbox" name="expense" value="1"> Lançar como despesa no financeiro</label>{% endif %}
+  <div class="actions full"><a class="btn" href="{{ url_for('estoque.lista') }}">Cancelar</a><button class="btn primary">Registrar</button></div>
+</form></div>
+{% endblock %}

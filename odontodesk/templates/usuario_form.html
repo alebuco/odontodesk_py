@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% from "_macros.html" import csrf_input %}{% block titulo %}Usuário{% endblock %}
+{% block conteudo %}
+<h1>{{ 'Novo usuário' if novo else 'Usuário — ' ~ u.name }}</h1>
+{% if erro %}<div class="flash erro">{{ erro }}</div>{% endif %}
+<div class="card"><form method="post" class="form" id="fu" autocomplete="off">{{ csrf_input() }}
+  <label class="full">Nome<input name="name" value="{{ u.name }}"></label>
+  <label>Usuário (para entrar)<input name="login" value="{{ u.login }}" autocomplete="off"></label>
+  <label>Tipo de acesso<select name="profileId">{% for p in perfis %}<option value="{{ p.id }}" {{ 'selected' if p.id == u.profileId }}>{{ p.name }}</option>{% endfor %}</select></label>
+  <label>Dentista vinculado (opcional)<select name="dentistId"><option value="">—</option>{% for d in dentistas %}<option value="{{ d.id }}" {{ 'selected' if d.id == u.dentistId }}>{{ d.name }}</option>{% endfor %}</select></label>
+  {% if novo %}<label>Senha provisória<input name="pass" value="{{ senha }}" autocomplete="new-password"></label>
+  <p class="muted small full">O usuário cria a própria senha no primeiro acesso (aqui ou no app do computador). Mínimo de 8 caracteres, com letras e números.</p>
+  {% else %}<label class="check"><input type="checkbox" name="active" value="1" {{ 'checked' if u.active }} {{ 'disabled' if eu }}> Ativo (pode entrar)</label>{% if eu %}<input type="hidden" name="active" value="1">{% endif %}{% endif %}
+</form>
+<div class="actions">{% if not novo and not eu %}<form method="post" action="{{ url_for('usuarios.excluir', id=u.id) }}" onsubmit="return confirm('Excluir o usuário {{ u.name }}? Para só impedir o acesso, desmarque Ativo.')">{{ csrf_input() }}<button class="btn danger">Excluir</button></form><span style="flex:1"></span>{% endif %}
+<a class="btn" href="{{ url_for('usuarios.lista') }}">Cancelar</a><button class="btn primary" form="fu">Salvar</button></div></div>
+{% endblock %}
