@@ -1,13 +1,25 @@
 """Data e hora no fuso da clínica (o servidor na nuvem costuma estar em UTC)."""
 import datetime
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-_FUSO = ZoneInfo("America/Sao_Paulo")
+# Brasília: UTC-3, sem horário de verão desde 2019. Usado se o computador não tiver a base de fusos
+# (Windows sem o pacote tzdata).
+_BRASILIA = datetime.timezone(datetime.timedelta(hours=-3), "America/Sao_Paulo")
+
+
+def _fuso(nome):
+    try:
+        return ZoneInfo(nome or "America/Sao_Paulo")
+    except (ZoneInfoNotFoundError, ValueError):
+        return _BRASILIA
+
+
+_FUSO = _fuso("America/Sao_Paulo")
 
 
 def configurar(fuso):
     global _FUSO
-    _FUSO = ZoneInfo(fuso or "America/Sao_Paulo")
+    _FUSO = _fuso(fuso)
 
 
 def agora():
